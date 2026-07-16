@@ -30,7 +30,6 @@ import {
   EyeOff,
   ArrowUp,
   ArrowDown,
-  Settings,
 } from "lucide-react";
 import {
   createHomepageSection,

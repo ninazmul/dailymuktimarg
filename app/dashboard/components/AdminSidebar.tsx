@@ -13,6 +13,7 @@ import {
 import {
   LayoutDashboard,
   FileText,
+  File,
   FolderTree,
   Tag,
   LayoutGrid,
@@ -50,6 +51,7 @@ const iconMap: Partial<
   authors: UserSquare2,
   ads: Megaphone,
   polls: Vote,
+  pages: File,
   users: Users,
   "audit-logs": History,
   settings: SettingsIcon,
@@ -66,6 +68,7 @@ const IMPLEMENTED_MODULES: CmsModule[] = [
   "authors",
   "ads",
   "polls",
+  "pages",
   "users",
   "audit-logs",
   "settings",
