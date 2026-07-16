@@ -65,6 +65,7 @@ export default function PagesClient({
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("published");
+  const [priority, setPriority] = useState(0);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +81,7 @@ export default function PagesClient({
     setSlug("");
     setContent("");
     setStatus("published");
+    setPriority(0);
     setSeoTitle("");
     setSeoDescription("");
     setIsEditing(false);
@@ -93,6 +95,7 @@ export default function PagesClient({
     setSlug(page.slug);
     setContent(page.content);
     setStatus(page.status);
+    setPriority(page.priority || 0);
     setSeoTitle(page.seo?.title || "");
     setSeoDescription(page.seo?.description || "");
   };
@@ -156,6 +159,7 @@ export default function PagesClient({
         slug,
         content,
         status,
+        priority,
         seo: {
           title: seoTitle.trim() || undefined,
           description: seoDescription.trim() || undefined,
@@ -224,12 +228,19 @@ export default function PagesClient({
                 >
                   <div className="flex flex-col flex-1">
                     <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm text-gray-500 min-w-[24px] text-center">
+                        {page.priority || 0}
+                      </span>
                       <span className="font-semibold text-gray-800">
                         {page.title}
                       </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        page.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                      }`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          page.status === "published"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
                         {page.status}
                       </span>
                     </div>
@@ -370,6 +381,20 @@ export default function PagesClient({
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="page-priority">Priority</Label>
+              <Input
+                id="page-priority"
+                type="number"
+                placeholder="0"
+                value={priority}
+                onChange={(e) => setPriority(parseInt(e.target.value) || 0)}
+              />
+              <p className="text-xs text-gray-500">
+                Higher numbers appear first in the footer.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
               <Label htmlFor="page-seo-title">SEO Title (Optional)</Label>
               <Input
                 id="page-seo-title"
@@ -380,7 +405,9 @@ export default function PagesClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="page-seo-description">SEO Description (Optional)</Label>
+              <Label htmlFor="page-seo-description">
+                SEO Description (Optional)
+              </Label>
               <Textarea
                 id="page-seo-description"
                 placeholder="SEO description"

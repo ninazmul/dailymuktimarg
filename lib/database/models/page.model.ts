@@ -6,6 +6,7 @@ export interface IPage extends Document {
   slug: string;
   content: string;
   status: "draft" | "published";
+  priority: number;
   seo?: {
     title?: string;
     description?: string;
@@ -25,6 +26,7 @@ const PageSchema = new Schema(
       default: "draft",
       required: true,
     },
+    priority: { type: Number, default: 0 },
     seo: {
       title: { type: String },
       description: { type: String },

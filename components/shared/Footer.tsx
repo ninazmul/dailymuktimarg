@@ -87,7 +87,7 @@ export default function Footer({
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/" className="hover:text-white transition">
-                  হোম
+                  Home
                 </Link>
               </li>
               <li>

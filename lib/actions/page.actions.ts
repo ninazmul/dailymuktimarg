@@ -29,7 +29,7 @@ export async function getPages(
 
     const [pages, totalCount] = await Promise.all([
       Page.find(query)
-        .sort({ title: 1 })
+        .sort({ priority: -1, title: 1 })
         .skip(skip)
         .limit(limit)
         .lean<IPage[]>(),
@@ -51,7 +51,20 @@ export async function getPages(
 export async function getAllPages(): Promise<IPage[]> {
   try {
     await connectToDatabase();
-    const pages = await Page.find().sort({ title: 1 }).lean<IPage[]>();
+    const pages = await Page.find().sort({ priority: -1, title: 1 }).lean<IPage[]>();
+    return safeJson(pages);
+  } catch (error) {
+    handleError(error);
+    return [];
+  }
+}
+
+export async function getPublishedPages(): Promise<IPage[]> {
+  try {
+    await connectToDatabase();
+    const pages = await Page.find({ status: "published" })
+      .sort({ priority: -1, title: 1 })
+      .lean<IPage[]>();
     return safeJson(pages);
   } catch (error) {
     handleError(error);
@@ -75,6 +88,7 @@ export async function createPage(params: {
   slug: string;
   content: string;
   status: "draft" | "published";
+  priority?: number;
   seo?: {
     title?: string;
     description?: string;
@@ -100,6 +114,7 @@ export async function updatePage(
     slug?: string;
     content?: string;
     status?: "draft" | "published";
+    priority?: number;
     seo?: {
       title?: string;
       description?: string;
