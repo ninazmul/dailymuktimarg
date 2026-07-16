@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 
 interface HeaderProps {
   categories: { _id: string; name: string; slug: string }[];
@@ -72,16 +73,20 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <h1 className="text-2xl font-black text-primary tracking-tight">
-            Daily Muktimarg
-          </h1>
+          <Image
+            src="/assets/images/logo.png"
+            alt="Logo"
+            width={200}
+            height={50}
+            className="w-auto h-16"
+          />
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
           <Link
             href="/"
-            className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
+            className="px-3 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
           >
             হোম
           </Link>
@@ -89,14 +94,14 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
             <Link
               key={cat._id}
               href={`/category/${cat.slug}`}
-              className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
+              className="px-3 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
             >
               {cat.name}
             </Link>
           ))}
           <Link
             href="/search"
-            className="px-3 py-2 text-sm font-semibold text-gray-500 hover:text-primary transition"
+            className="px-3 py-2 font-semibold text-gray-500 hover:text-primary transition"
           >
             🔍
           </Link>

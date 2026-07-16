@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
+import Image from "next/image";
 
 interface FooterProps {
   contactEmail?: string;
@@ -20,9 +21,15 @@ export default function Footer({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl font-black text-white mb-3">
-              Daily Muktimarg
-            </h3>
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src="/assets/images/logo.png"
+                alt="Logo"
+                width={400}
+                height={100}
+                className="w-auto h-28 bg-white rounded-md p-1"
+              />
+            </Link>
             <p className="text-sm text-gray-400 leading-relaxed">
               বাংলাদেশের অন্যতম প্রধান অনলাইন সংবাদ মাধ্যম। সর্বশেষ খবর,
               বিশ্লেষণ এবং মতামত।
