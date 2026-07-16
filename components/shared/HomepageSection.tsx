@@ -5,6 +5,7 @@ interface HomepageSectionProps {
   section: {
     _id: string;
     sectionName: string;
+    customTitle?: string;
     sectionType: string;
     layoutType?: string;
     categoryId?: { name: string; slug: string };
@@ -24,12 +25,13 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
   if (articles.length === 0) return null;
 
   const categorySlug = section.categoryId?.slug;
+  const displayTitle = section.customTitle || section.sectionName;
 
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-black text-gray-800 border-l-4 border-primary pl-3">
-          {section.sectionName}
+          {displayTitle}
         </h2>
         {categorySlug && (
           <Link href={`/category/${categorySlug}`} className="text-xs font-semibold text-primary hover:underline">

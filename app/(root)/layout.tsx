@@ -28,10 +28,15 @@ export default async function PublicLayout({
     getAds({ status: "active" }),
   ]);
 
+  const headerAd = activeAds.find((ad) => ad.placement === "header");
   const footerAd = activeAds.find((ad) => ad.placement === "footer");
+  const popupAd = activeAds.find((ad) => ad.placement === "popup");
+  const stickyAd = activeAds.find((ad) => ad.placement === "sticky");
+  const mobileAd = activeAds.find((ad) => ad.placement === "mobile");
 
   const safeCategories = JSON.parse(JSON.stringify(navCategories));
   const safeBreaking = JSON.parse(JSON.stringify(breakingNews));
+  const safeAds = JSON.parse(JSON.stringify(activeAds));
 
   // Convert socialLinks if it is a Map, or use directly if it's already a plain object
   const socialLinks = setting?.socialLinks
@@ -43,6 +48,11 @@ export default async function PublicLayout({
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header categories={safeCategories} socialLinks={socialLinks} />
+      {headerAd && (
+        <div className="py-4 px-4 border-b border-gray-200 bg-white">
+          <Ad ad={headerAd} className="max-w-5xl mx-auto" />
+        </div>
+      )}
       {safeBreaking.length > 0 && <BreakingTicker items={safeBreaking} />}
       <main className="flex-1">{children}</main>
       {footerAd && (
@@ -56,6 +66,9 @@ export default async function PublicLayout({
         address={setting?.address}
         socialLinks={socialLinks}
       />
+      {popupAd && <Ad ad={popupAd} />}
+      {stickyAd && <Ad ad={stickyAd} />}
+      {mobileAd && <Ad ad={mobileAd} />}
     </div>
   );
 }

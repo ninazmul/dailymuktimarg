@@ -15,15 +15,16 @@ export async function getAds(params?: {
     await connectToDatabase();
     const query: any = {};
     if (params?.placement) query.placement = params.placement;
-    if (params?.status) query.status = params.status;
-
-    const now = new Date();
-    query.$or = [
-      { startDate: { $lte: now }, endDate: { $gte: now } },
-      { startDate: null, endDate: null },
-      { startDate: null, endDate: { $gte: now } },
-      { startDate: { $lte: now }, endDate: null },
-    ];
+    if (params?.status) {
+      query.status = params.status;
+      const now = new Date();
+      query.$or = [
+        { startDate: { $lte: now }, endDate: { $gte: now } },
+        { startDate: null, endDate: null },
+        { startDate: null, endDate: { $gte: now } },
+        { startDate: { $lte: now }, endDate: null },
+      ];
+    }
 
     let adsQuery = Ad.find(query)
       .sort({ priority: -1, createdAt: -1 })
@@ -57,11 +58,18 @@ export async function createAd(params: AdFormParams): Promise<IAd> {
   }
 }
 
-export async function updateAd(id: string, params: Partial<AdFormParams>): Promise<IAd> {
+export async function updateAd(
+  id: string,
+  params: Partial<AdFormParams>,
+): Promise<IAd> {
   await requirePermission("ads", "update");
   try {
     await connectToDatabase();
-    const updated = await Ad.findByIdAndUpdate(id, { $set: params }, { returnDocument: "after" });
+    const updated = await Ad.findByIdAndUpdate(
+      id,
+      { $set: params },
+      { returnDocument: "after" },
+    );
     if (!updated) throw new Error("Ad not found");
     revalidatePath("/dashboard/ads");
     revalidatePath("/");

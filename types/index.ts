@@ -121,14 +121,23 @@ export type PageFormParams = {
   };
 };
 
-// ====== HOMEPAGE LAYOUT PARAMS
+// ===== HOMEPAGE LAYOUT PARAMS =====
 export type HomepageLayoutFormParams = {
   sectionName: string;
-  sectionType: "hero" | "lead" | "categoryGrid" | "trending" | "widgets" | "videoGallery" | "photoGallery";
+  sectionType: "hero" | "lead" | "categoryGrid" | "trending" | "widgets" | "videoGallery" | "photoGallery" | "breaking" | "featured";
   categoryId?: string;
   postsCount?: number;
   layoutType?: "grid" | "list" | "slider" | "sidebarLayout";
   enabled?: boolean;
   isPinned?: boolean;
   order?: number;
+  customTitle?: string;
+  backgroundColor?: string;
+  filters?: {
+    featured?: boolean;
+    trending?: boolean;
+    breaking?: boolean;
+    hasVideo?: boolean;
+  };
+  adPlacement?: "top" | "bottom" | "inline" | null;
 };

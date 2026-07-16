@@ -2,6 +2,7 @@
 
 import { IAd } from "@/lib/database/models/ad.model";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 interface AdProps {
   ad: IAd;
@@ -9,7 +10,28 @@ interface AdProps {
 }
 
 export default function Ad({ ad, className = "" }: AdProps) {
+  const [showPopup, setShowPopup] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (ad.placement === "popup") {
+      // Show popup after a short delay
+      const timer = setTimeout(() => setShowPopup(true), 1500);
+      return () => clearTimeout(timer);
+    }
+
+    // Check if mobile
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [ad.placement]);
+
   if (!ad) return null;
+
+  // Skip non-mobile placements on mobile if we have a mobile ad, and vice versa
+  if (isMobile && ad.placement !== "mobile" && ad.placement !== "popup" && ad.placement !== "sticky") return null;
+  if (!isMobile && ad.placement === "mobile") return null;
 
   const renderContent = () => {
     if (ad.htmlCode) {
@@ -61,6 +83,39 @@ export default function Ad({ ad, className = "" }: AdProps) {
       </div>
     );
   };
+
+  // Handle popup ad
+  if (ad.placement === "popup") {
+    if (!showPopup) return null;
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="relative max-w-lg w-full mx-4">
+          <button
+            onClick={() => setShowPopup(false)}
+            className="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl"
+          >
+            ×
+          </button>
+          <div className="bg-white rounded-xl overflow-hidden shadow-2xl">
+            <p className="text-xs text-gray-400 text-center py-2 bg-gray-50 border-b">Advertisement</p>
+            {renderContent()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle sticky ad
+  if (ad.placement === "sticky") {
+    return (
+      <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-3xl ${className}`}>
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+          <p className="text-xs text-gray-400 text-center py-2 bg-gray-50 border-b">Advertisement</p>
+          {renderContent()}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`ad-container ${className}`}>

@@ -12,7 +12,7 @@ import Image from "next/image";
 export const revalidate = 60;
 
 const ARTICLE_CARD_FIELDS =
-  "title slug summary featuredImage categoryId publishDate views leadPosition";
+  "title slug summary featuredImage categoryId publishDate views leadPosition gallery video";
 
 export default async function HomePage() {
   await connectToDatabase();
@@ -22,12 +22,14 @@ export default async function HomePage() {
   const headerAd = activeAds.find((ad) => ad.placement === "header");
   const sidebarAd = activeAds.find((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
+  const popupAd = activeAds.find((ad) => ad.placement === "popup");
+  const stickyAd = activeAds.find((ad) => ad.placement === "sticky");
+  const mobileAd = activeAds.find((ad) => ad.placement === "mobile");
 
   // Fetch all enabled homepage sections
   const sections = await HomepageLayout.find({ enabled: true })
     .populate("categoryId", "name slug")
     .sort({ order: 1 })
-    .select("sectionName sectionType categoryId postsCount layoutType order enabled isPinned")
     .lean();
 
   // Fetch lead articles for the hero
@@ -46,12 +48,75 @@ export default async function HomePage() {
     sections.map(async (section: any) => {
       const query: any = { status: "published" };
 
+      // Apply filters
+      if (section.filters) {
+        if (section.filters.featured) query.featured = true;
+        if (section.filters.trending) query.trending = true;
+        if (section.filters.breaking) query.breaking = true;
+        if (section.filters.hasVideo) query.video = { $ne: null };
+      }
+
       if (section.sectionType === "trending") {
-        // Trending = most views
         const articles = await News.find(query)
           .select(ARTICLE_CARD_FIELDS)
           .populate("categoryId", "name slug")
           .sort({ views: -1 })
+          .limit(section.postsCount || 6)
+          .lean();
+        return {
+          section: JSON.parse(JSON.stringify(section)),
+          articles: JSON.parse(JSON.stringify(articles)),
+        };
+      }
+
+      if (section.sectionType === "breaking") {
+        query.breaking = true;
+        const articles = await News.find(query)
+          .select(ARTICLE_CARD_FIELDS)
+          .populate("categoryId", "name slug")
+          .sort({ publishDate: -1 })
+          .limit(section.postsCount || 6)
+          .lean();
+        return {
+          section: JSON.parse(JSON.stringify(section)),
+          articles: JSON.parse(JSON.stringify(articles)),
+        };
+      }
+
+      if (section.sectionType === "featured") {
+        query.featured = true;
+        const articles = await News.find(query)
+          .select(ARTICLE_CARD_FIELDS)
+          .populate("categoryId", "name slug")
+          .sort({ publishDate: -1 })
+          .limit(section.postsCount || 6)
+          .lean();
+        return {
+          section: JSON.parse(JSON.stringify(section)),
+          articles: JSON.parse(JSON.stringify(articles)),
+        };
+      }
+
+      if (section.sectionType === "videoGallery") {
+        query.video = { $ne: null };
+        const articles = await News.find(query)
+          .select(ARTICLE_CARD_FIELDS)
+          .populate("categoryId", "name slug")
+          .sort({ publishDate: -1 })
+          .limit(section.postsCount || 6)
+          .lean();
+        return {
+          section: JSON.parse(JSON.stringify(section)),
+          articles: JSON.parse(JSON.stringify(articles)),
+        };
+      }
+
+      if (section.sectionType === "photoGallery") {
+        query.gallery = { $ne: [] };
+        const articles = await News.find(query)
+          .select(ARTICLE_CARD_FIELDS)
+          .populate("categoryId", "name slug")
+          .sort({ publishDate: -1 })
           .limit(section.postsCount || 6)
           .lean();
         return {
@@ -80,6 +145,12 @@ export default async function HomePage() {
 
   const safeLeads = JSON.parse(JSON.stringify(leadArticles));
   const activePoll = await getActivePoll();
+
+  // Function to find an ad for a specific section's adPlacement
+  const getAdForPlacement = (placement: string | undefined) => {
+    if (!placement) return undefined;
+    return activeAds.find((ad) => ad.placement === placement);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -186,16 +257,22 @@ export default async function HomePage() {
 
           {/* Dynamic Sections */}
           {sectionData.map(({ section, articles }, index) => (
-            <>
+            <div
+              key={section._id}
+              className="space-y-4"
+              style={section.backgroundColor ? { backgroundColor: section.backgroundColor } : {}}
+            >
+              {section.adPlacement === "top" && (
+                <Ad ad={activeAds.find(a => a.placement === "inline")!} className="max-w-4xl mx-auto" />
+              )}
               <HomepageSection
-                key={section._id}
                 section={section}
                 articles={articles}
               />
-              {index === 1 && inlineAds[0] && (
-                <Ad ad={inlineAds[0]} className="max-w-4xl mx-auto" />
+              {(section.adPlacement === "bottom" || section.adPlacement === "inline") && (
+                <Ad ad={activeAds.find(a => a.placement === "inline")!} className="max-w-4xl mx-auto" />
               )}
-            </>
+            </div>
           ))}
 
           {/* Poll Widget */}
@@ -213,6 +290,10 @@ export default async function HomePage() {
           </div>
         )}
       </div>
+      {/* Global ads */}
+      {popupAd && <Ad ad={popupAd} />}
+      {stickyAd && <Ad ad={stickyAd} />}
+      {mobileAd && <Ad ad={mobileAd} />}
     </div>
   );
 }
