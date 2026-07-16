@@ -18,10 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Sparkles, HelpCircle } from "lucide-react";
+import { Image as ImageIcon, Sparkles } from "lucide-react";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import MediaLibraryModal from "@/components/shared/MediaLibrary/MediaLibraryModal";
-import { createNewsArticle, updateNewsArticle } from "@/lib/actions/news.actions";
+import {
+  createNewsArticle,
+  updateNewsArticle,
+} from "@/lib/actions/news.actions";
 import { ICategory } from "@/lib/database/models/category.model";
 import { ITag } from "@/lib/database/models/tag.model";
 import { IReporter } from "@/lib/database/models/reporter.model";
@@ -93,7 +96,9 @@ export default function NewsForm({
     const date = new Date(d);
     // Format to YYYY-MM-DDThh:mm
     const tzoffset = date.getTimezoneOffset() * 60000;
-    const localISOTime = new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
+    const localISOTime = new Date(date.getTime() - tzoffset)
+      .toISOString()
+      .slice(0, 16);
     return localISOTime;
   };
 
@@ -117,7 +122,9 @@ export default function NewsForm({
       video: initialData?.video || "",
       categoryId: initialData?.categoryId?.toString() || "",
       nestedCategoryId: initialData?.nestedCategoryId?.toString() || "",
-      tags: initialData?.tags?.map((t: any) => t._id?.toString() || t.toString()) || [],
+      tags:
+        initialData?.tags?.map((t: any) => t._id?.toString() || t.toString()) ||
+        [],
       reporterId: initialData?.reporterId?.toString() || "",
       authorId: initialData?.authorId?.toString() || "",
       source: initialData?.source || "",
@@ -141,6 +148,7 @@ export default function NewsForm({
   const selectedCategory = watch("categoryId");
   const watchTitle = watch("title");
   const watchLead = watch("lead");
+  const selectedTags = watch("tags");
 
   // Dynamic filter for subcategories
   useEffect(() => {
@@ -148,7 +156,8 @@ export default function NewsForm({
       const filtered = categories.filter(
         (c) =>
           c.parentId &&
-          ((c.parentId as any)._id?.toString() || c.parentId.toString()) === selectedCategory
+          ((c.parentId as any)._id?.toString() || c.parentId.toString()) ===
+            selectedCategory,
       );
       setSubCategories(filtered);
     } else {
@@ -181,7 +190,9 @@ export default function NewsForm({
       const payload: any = {
         ...values,
         keywords,
-        publishDate: values.publishDate ? new Date(values.publishDate).toISOString() : undefined,
+        publishDate: values.publishDate
+          ? new Date(values.publishDate).toISOString()
+          : undefined,
         schedulePublish: values.schedulePublish
           ? new Date(values.schedulePublish).toISOString()
           : undefined,
@@ -231,13 +242,17 @@ export default function NewsForm({
                       {...register("title")}
                     />
                     {errors.title && (
-                      <p className="text-xs text-destructive">{errors.title.message}</p>
+                      <p className="text-xs text-destructive">
+                        {errors.title.message}
+                      </p>
                     )}
                   </div>
 
                   {/* Subtitle */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="news-subtitle">Sub-headline (Optional)</Label>
+                    <Label htmlFor="news-subtitle">
+                      Sub-headline (Optional)
+                    </Label>
                     <Input
                       id="news-subtitle"
                       placeholder="Add secondary sub-title details"
@@ -265,13 +280,17 @@ export default function NewsForm({
                       </Button>
                     </div>
                     {errors.slug && (
-                      <p className="text-xs text-destructive">{errors.slug.message}</p>
+                      <p className="text-xs text-destructive">
+                        {errors.slug.message}
+                      </p>
                     )}
                   </div>
 
                   {/* Summary */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="news-summary">Summary Introduction (Optional)</Label>
+                    <Label htmlFor="news-summary">
+                      Summary Introduction (Optional)
+                    </Label>
                     <Textarea
                       id="news-summary"
                       rows={3}
@@ -287,7 +306,10 @@ export default function NewsForm({
                       name="content"
                       control={control}
                       render={({ field }) => (
-                        <RichTextEditor value={field.value || ""} onChange={field.onChange} />
+                        <RichTextEditor
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                        />
                       )}
                     />
                   </div>
@@ -328,18 +350,24 @@ export default function NewsForm({
                           className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer bg-gray-50 hover:bg-gray-100/50 transition text-gray-500"
                         >
                           <ImageIcon className="w-10 h-10 mb-2 text-gray-400" />
-                          <span className="text-xs font-semibold">Choose Cover Image</span>
+                          <span className="text-xs font-semibold">
+                            Choose Cover Image
+                          </span>
                         </div>
                       )}
                       {errors.featuredImage && (
-                        <p className="text-xs text-destructive">{errors.featuredImage.message}</p>
+                        <p className="text-xs text-destructive">
+                          {errors.featuredImage.message}
+                        </p>
                       )}
                     </div>
 
                     {/* Video Embed URL */}
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="news-video">YouTube Video URL (Optional)</Label>
+                        <Label htmlFor="news-video">
+                          YouTube Video URL (Optional)
+                        </Label>
                         <Input
                           id="news-video"
                           placeholder="https://www.youtube.com/watch?v=..."
@@ -347,7 +375,8 @@ export default function NewsForm({
                         />
                       </div>
                       <div className="text-xs text-gray-400">
-                        Provide a valid video share link. If present, video player features will overlay on homepage layout spots.
+                        Provide a valid video share link. If present, video
+                        player features will overlay on homepage layout spots.
                       </div>
                     </div>
                   </div>
@@ -368,7 +397,9 @@ export default function NewsForm({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="seo-description">SEO Meta Description</Label>
+                    <Label htmlFor="seo-description">
+                      SEO Meta Description
+                    </Label>
                     <Textarea
                       id="seo-description"
                       rows={4}
@@ -378,7 +409,9 @@ export default function NewsForm({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="seo-keywords">Keywords (comma-separated)</Label>
+                    <Label htmlFor="seo-keywords">
+                      Keywords (comma-separated)
+                    </Label>
                     <Input
                       id="seo-keywords"
                       placeholder="politics, election, city, news"
@@ -421,7 +454,9 @@ export default function NewsForm({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="review">Submit for Review</SelectItem>
+                        <SelectItem value="review">
+                          Submit for Review
+                        </SelectItem>
                         <SelectItem value="published">Publish Now</SelectItem>
                         <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
@@ -472,7 +507,10 @@ export default function NewsForm({
                         {categories
                           .filter((c) => !c.parentId)
                           .map((cat) => (
-                            <SelectItem key={cat._id.toString()} value={cat._id.toString()}>
+                            <SelectItem
+                              key={cat._id.toString()}
+                              value={cat._id.toString()}
+                            >
                               {cat.name}
                             </SelectItem>
                           ))}
@@ -481,7 +519,9 @@ export default function NewsForm({
                   )}
                 />
                 {errors.categoryId && (
-                  <p className="text-xs text-destructive">{errors.categoryId.message}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.categoryId.message}
+                  </p>
                 )}
               </div>
 
@@ -493,13 +533,19 @@ export default function NewsForm({
                     name="nestedCategoryId"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select Sub-category" />
                         </SelectTrigger>
                         <SelectContent>
                           {subCategories.map((sub) => (
-                            <SelectItem key={sub._id.toString()} value={sub._id.toString()}>
+                            <SelectItem
+                              key={sub._id.toString()}
+                              value={sub._id.toString()}
+                            >
                               {sub.name}
                             </SelectItem>
                           ))}
@@ -509,6 +555,52 @@ export default function NewsForm({
                   />
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                {tags.length > 0 ? (
+                  <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+                    {tags.map((tag) => {
+                      const tagId = tag._id.toString();
+                      const isChecked = selectedTags.includes(tagId);
+
+                      return (
+                        <div
+                          key={tagId}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`tag-${tagId}`}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              const nextTags = checked
+                                ? [...selectedTags, tagId]
+                                : selectedTags.filter(
+                                    (value) => value !== tagId,
+                                  );
+
+                              setValue("tags", nextTags, {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                              });
+                            }}
+                          />
+                          <Label
+                            htmlFor={`tag-${tagId}`}
+                            className="cursor-pointer text-sm font-normal"
+                          >
+                            {tag.name}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No tags found. Create tags first from the tags section.
+                  </p>
+                )}
+              </div>
 
               {/* Attribution options */}
               <div className="space-y-1.5">
@@ -523,7 +615,10 @@ export default function NewsForm({
                       </SelectTrigger>
                       <SelectContent>
                         {reporters.map((rep) => (
-                          <SelectItem key={rep._id.toString()} value={rep._id.toString()}>
+                          <SelectItem
+                            key={rep._id.toString()}
+                            value={rep._id.toString()}
+                          >
                             {rep.name}
                           </SelectItem>
                         ))}
@@ -545,7 +640,10 @@ export default function NewsForm({
                       </SelectTrigger>
                       <SelectContent>
                         {authors.map((aut) => (
-                          <SelectItem key={aut._id.toString()} value={aut._id.toString()}>
+                          <SelectItem
+                            key={aut._id.toString()}
+                            value={aut._id.toString()}
+                          >
                             {aut.name}
                           </SelectItem>
                         ))}
@@ -627,10 +725,18 @@ export default function NewsForm({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="Top Headlines">Top Headlines</SelectItem>
-                        <SelectItem value="Editor's Pick">Editor's Pick</SelectItem>
-                        <SelectItem value="Important News">Important News</SelectItem>
-                        <SelectItem value="Latest Headlines">Latest Headlines</SelectItem>
+                        <SelectItem value="Top Headlines">
+                          Top Headlines
+                        </SelectItem>
+                        <SelectItem value="Editor's Pick">
+                          Editor's Pick
+                        </SelectItem>
+                        <SelectItem value="Important News">
+                          Important News
+                        </SelectItem>
+                        <SelectItem value="Latest Headlines">
+                          Latest Headlines
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -645,7 +751,10 @@ export default function NewsForm({
                     checked={watchLead}
                     onCheckedChange={(val) => setValue("lead", !!val)}
                   />
-                  <Label htmlFor="check-lead" className="cursor-pointer font-semibold">
+                  <Label
+                    htmlFor="check-lead"
+                    className="cursor-pointer font-semibold"
+                  >
                     Pin as Homepage Lead
                   </Label>
                 </div>
@@ -659,18 +768,32 @@ export default function NewsForm({
                       render={({ field }) => (
                         <Select
                           value={field.value ? field.value.toString() : ""}
-                          onValueChange={(val) => setValue("leadPosition", parseInt(val) || undefined)}
+                          onValueChange={(val) =>
+                            setValue("leadPosition", parseInt(val) || undefined)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Position" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">Position 1 (Hero Lead)</SelectItem>
-                            <SelectItem value="2">Position 2 (Secondary Grid)</SelectItem>
-                            <SelectItem value="3">Position 3 (Secondary Grid)</SelectItem>
-                            <SelectItem value="4">Position 4 (Secondary Grid)</SelectItem>
-                            <SelectItem value="5">Position 5 (Secondary Grid)</SelectItem>
-                            <SelectItem value="6">Position 6 (Secondary Grid)</SelectItem>
+                            <SelectItem value="1">
+                              Position 1 (Hero Lead)
+                            </SelectItem>
+                            <SelectItem value="2">
+                              Position 2 (Secondary Grid)
+                            </SelectItem>
+                            <SelectItem value="3">
+                              Position 3 (Secondary Grid)
+                            </SelectItem>
+                            <SelectItem value="4">
+                              Position 4 (Secondary Grid)
+                            </SelectItem>
+                            <SelectItem value="5">
+                              Position 5 (Secondary Grid)
+                            </SelectItem>
+                            <SelectItem value="6">
+                              Position 6 (Secondary Grid)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -681,8 +804,17 @@ export default function NewsForm({
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full justify-center" disabled={isSubmitting}>
-            {isSubmitting ? "Saving Article..." : initialData ? "Save Changes" : "Publish Article"}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full justify-center"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? "Saving Article..."
+              : initialData
+                ? "Save Changes"
+                : "Publish Article"}
           </Button>
         </div>
       </div>
