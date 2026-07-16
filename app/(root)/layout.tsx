@@ -31,10 +31,10 @@ export default async function PublicLayout({
       Page.find({ status: "published" }).sort({ createdAt: -1 }).lean(),
     ]);
 
-  const footerAd = activeAds.find((ad) => ad.placement === "footer");
-  const popupAd = activeAds.find((ad) => ad.placement === "popup");
-  const stickyAd = activeAds.find((ad) => ad.placement === "sticky");
-  const mobileAd = activeAds.find((ad) => ad.placement === "mobile");
+  const footerAds = activeAds.filter((ad) => ad.placement === "footer");
+  const popupAds = activeAds.filter((ad) => ad.placement === "popup");
+  const stickyAds = activeAds.filter((ad) => ad.placement === "sticky");
+  const mobileAds = activeAds.filter((ad) => ad.placement === "mobile");
 
   const safeCategories = JSON.parse(JSON.stringify(navCategories));
   const safeBreaking = JSON.parse(JSON.stringify(breakingNews));
@@ -52,9 +52,13 @@ export default async function PublicLayout({
       <Header categories={safeCategories} socialLinks={socialLinks} />
       {safeBreaking.length > 0 && <BreakingTicker items={safeBreaking} />}
       <main className="flex-1">{children}</main>
-      {footerAd && (
+      {footerAds.length > 0 && (
         <div className="py-4 px-4 border-t border-gray-200 bg-white">
-          <Ad ad={footerAd} className="max-w-5xl mx-auto" />
+          <div className="max-w-5xl mx-auto space-y-4">
+            {footerAds.map((ad) => (
+              <Ad key={ad._id.toString()} ad={ad} />
+            ))}
+          </div>
         </div>
       )}
       <Footer
@@ -64,9 +68,15 @@ export default async function PublicLayout({
         socialLinks={socialLinks}
         pages={safePages}
       />
-      {popupAd && <Ad ad={popupAd} />}
-      {stickyAd && <Ad ad={stickyAd} />}
-      {mobileAd && <Ad ad={mobileAd} />}
+      {popupAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
+      {stickyAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
+      {mobileAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
     </div>
   );
 }

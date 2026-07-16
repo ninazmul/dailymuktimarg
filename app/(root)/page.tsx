@@ -6,6 +6,7 @@ import { getAds } from "@/lib/actions/ad.actions";
 import HomepageSection from "@/components/shared/HomepageSection";
 import PollWidget from "@/components/shared/PollWidget";
 import Ad from "@/components/shared/Ad";
+import AdCarousel from "@/components/shared/AdCarousel";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -19,12 +20,12 @@ export default async function HomePage() {
 
   // Fetch active ads
   const activeAds = await getAds({ status: "active" });
-  const headerAd = activeAds.find((ad) => ad.placement === "header");
-  const sidebarAd = activeAds.find((ad) => ad.placement === "sidebar");
+  const headerAds = activeAds.filter((ad) => ad.placement === "header");
+  const sidebarAds = activeAds.filter((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
-  const popupAd = activeAds.find((ad) => ad.placement === "popup");
-  const stickyAd = activeAds.find((ad) => ad.placement === "sticky");
-  const mobileAd = activeAds.find((ad) => ad.placement === "mobile");
+  const popupAds = activeAds.filter((ad) => ad.placement === "popup");
+  const stickyAds = activeAds.filter((ad) => ad.placement === "sticky");
+  const mobileAds = activeAds.filter((ad) => ad.placement === "mobile");
 
   // Fetch all enabled homepage sections
   const sections = await HomepageLayout.find({ enabled: true })
@@ -221,7 +222,9 @@ export default async function HomePage() {
           )}
 
           {/* Header Ad After Hero */}
-          {headerAd && <Ad ad={headerAd} className="max-w-4xl mx-auto" />}
+          {headerAds.length > 0 && (
+            <AdCarousel ads={headerAds} className="max-w-4xl mx-auto" />
+          )}
 
           {/* Secondary Lead Row */}
           {safeLeads.length > 3 && (
@@ -260,17 +263,25 @@ export default async function HomePage() {
             <div
               key={section._id}
               className="space-y-4"
-              style={section.backgroundColor ? { backgroundColor: section.backgroundColor } : {}}
+              style={
+                section.backgroundColor
+                  ? { backgroundColor: section.backgroundColor }
+                  : {}
+              }
             >
               {section.adPlacement === "top" && (
-                <Ad ad={activeAds.find(a => a.placement === "inline")!} className="max-w-4xl mx-auto" />
+                <Ad
+                  ad={activeAds.find((a) => a.placement === "inline")!}
+                  className="max-w-4xl mx-auto"
+                />
               )}
-              <HomepageSection
-                section={section}
-                articles={articles}
-              />
-              {(section.adPlacement === "bottom" || section.adPlacement === "inline") && (
-                <Ad ad={activeAds.find(a => a.placement === "inline")!} className="max-w-4xl mx-auto" />
+              <HomepageSection section={section} articles={articles} />
+              {(section.adPlacement === "bottom" ||
+                section.adPlacement === "inline") && (
+                <Ad
+                  ad={activeAds.find((a) => a.placement === "inline")!}
+                  className="max-w-4xl mx-auto"
+                />
               )}
             </div>
           ))}
@@ -284,16 +295,24 @@ export default async function HomePage() {
         </div>
 
         {/* Sidebar */}
-        {sidebarAd && (
-          <div className="w-full lg:w-80 flex-shrink-0">
-            <Ad ad={sidebarAd} />
+        {sidebarAds.length > 0 && (
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+            {sidebarAds.map((ad) => (
+              <Ad key={ad._id.toString()} ad={ad} />
+            ))}
           </div>
         )}
       </div>
       {/* Global ads */}
-      {popupAd && <Ad ad={popupAd} />}
-      {stickyAd && <Ad ad={stickyAd} />}
-      {mobileAd && <Ad ad={mobileAd} />}
+      {popupAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
+      {stickyAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
+      {mobileAds.map((ad) => (
+        <Ad key={ad._id.toString()} ad={ad} />
+      ))}
     </div>
   );
 }

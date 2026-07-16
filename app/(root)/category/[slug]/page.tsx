@@ -47,7 +47,7 @@ export default async function CategoryPage({
 
   if (!category) notFound();
 
-  const sidebarAd = activeAds.find((ad) => ad.placement === "sidebar");
+  const sidebarAds = activeAds.filter((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
 
   // Find all sub-categories via materialized path
@@ -155,9 +155,13 @@ export default async function CategoryPage({
             </div>
           )}
 
-          {/* Inline Ad */}
-          {inlineAds[0] && (
-            <Ad ad={inlineAds[0]} className="my-8 max-w-3xl mx-auto" />
+          {/* Inline Ads */}
+          {inlineAds.length > 0 && (
+            <div className="my-8 max-w-3xl mx-auto space-y-4">
+              {inlineAds.map((ad) => (
+                <Ad key={ad._id.toString()} ad={ad} />
+              ))}
+            </div>
           )}
 
           {/* Pagination */}
@@ -186,10 +190,12 @@ export default async function CategoryPage({
           )}
         </div>
 
-        {/* Sidebar Ad */}
-        {sidebarAd && (
-          <div className="w-full lg:w-80 flex-shrink-0">
-            <Ad ad={sidebarAd} />
+        {/* Sidebar Ads */}
+        {sidebarAds.length > 0 && (
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+            {sidebarAds.map((ad) => (
+              <Ad key={ad._id.toString()} ad={ad} />
+            ))}
           </div>
         )}
       </div>
