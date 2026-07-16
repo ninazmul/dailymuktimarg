@@ -63,7 +63,7 @@ export async function getPublishedPages(): Promise<IPage[]> {
   try {
     await connectToDatabase();
     const pages = await Page.find({ status: "published" })
-      .sort({ priority: -1, title: 1 })
+      .sort({ priority: 1, title: 1 })
       .lean<IPage[]>();
     return safeJson(pages);
   } catch (error) {
