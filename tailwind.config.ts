@@ -83,8 +83,9 @@ module.exports = withUt({
         "1080": "1080px",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
+        sans: ["var(--font-bengali)", "var(--font-inter)", "sans-serif"],
         serif: ["var(--font-dm-serif)", "serif"],
+        bengali: ["var(--font-bengali)", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {

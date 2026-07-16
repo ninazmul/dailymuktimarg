@@ -44,7 +44,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* FONT VARIABLES FROM NEXT/FONT */
-    --font-sans: var(--font-inter);
+    --font-sans: var(--font-bengali);
     --font-heading: var(--font-dm-serif);
     --font-bengali: var(--font-bengali);
   }
