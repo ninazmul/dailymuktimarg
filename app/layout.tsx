@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import { Inter, DM_Serif_Display, Hind_Siliguri } from "next/font/google";
+import { Inter, DM_Serif_Display } from "next/font/google";
+import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
@@ -19,9 +20,14 @@ const dmSerif = DM_Serif_Display({
   variable: "--font-dm-serif",
 });
 
-const hindSiliguri = Hind_Siliguri({
-  subsets: ["latin", "bengali"],
-  weight: ["400", "500", "600", "700"],
+const solaimanLipi = localFont({
+  src: [
+    {
+      path: "../public/fonts/SolaimanLipi.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
   variable: "--font-bengali",
 });
 
@@ -78,7 +84,7 @@ export default function RootLayout({
   return (
     <html lang="bn">
       <body
-        className={`${inter.variable} ${dmSerif.variable} ${hindSiliguri.variable} font-sans`}
+        className={`${inter.variable} ${dmSerif.variable} ${solaimanLipi.variable} font-sans`}
       >
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <ClerkProvider>{children}</ClerkProvider>
