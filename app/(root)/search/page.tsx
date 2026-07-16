@@ -1,4 +1,3 @@
-
 import { connectToDatabase } from "@/lib/database";
 import News from "@/lib/database/models/news.model";
 import Category from "@/lib/database/models/category.model";
@@ -8,12 +7,18 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-const ARTICLE_CARD_FIELDS = "title slug summary featuredImage categoryId publishDate";
+const ARTICLE_CARD_FIELDS =
+  "title slug summary featuredImage categoryId publishDate";
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ q?: string; category?: string; tag?: string; page?: string }>;
+  searchParams?: Promise<{
+    q?: string;
+    category?: string;
+    tag?: string;
+    page?: string;
+  }>;
 }) {
   const resolvedSearch = (await searchParams) ?? {};
   const query = resolvedSearch.q || "";
@@ -33,7 +38,10 @@ export default async function SearchPage({
   const searchFilter: any = { status: "published" };
 
   if (query) {
-    searchFilter.$text = { $search: query };
+    searchFilter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { slug: { $regex: query, $options: "i" } },
+    ];
   }
 
   if (catSlug) {
@@ -52,8 +60,8 @@ export default async function SearchPage({
 
   const [articles, totalCount] = await Promise.all([
     News.find(searchFilter)
-      .select(query ? `${ARTICLE_CARD_FIELDS} score` : ARTICLE_CARD_FIELDS)
-      .sort(query ? { score: { $meta: "textScore" }, publishDate: -1 } : { publishDate: -1 })
+      .select(ARTICLE_CARD_FIELDS)
+      .sort({ publishDate: -1 })
       .populate("categoryId", "name slug")
       .skip((page - 1) * limit)
       .limit(limit)
@@ -75,7 +83,9 @@ export default async function SearchPage({
         <div className="bg-white border rounded-xl p-5 h-fit space-y-6">
           <form method="GET" action="/search" className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Keywords</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Search Keywords
+              </label>
               <input
                 type="text"
                 name="q"
@@ -86,7 +96,9 @@ export default async function SearchPage({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Category</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Category
+              </label>
               <select
                 name="category"
                 defaultValue={catSlug}
@@ -94,13 +106,17 @@ export default async function SearchPage({
               >
                 <option value="">All Categories</option>
                 {categories.map((c: any) => (
-                  <option key={c._id.toString()} value={c.slug}>{c.name}</option>
+                  <option key={c._id.toString()} value={c.slug}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tag</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Tag
+              </label>
               <select
                 name="tag"
                 defaultValue={tagSlug}
@@ -108,7 +124,9 @@ export default async function SearchPage({
               >
                 <option value="">All Tags</option>
                 {tags.map((t: any) => (
-                  <option key={t._id.toString()} value={t.slug} >#{t.name}</option>
+                  <option key={t._id.toString()} value={t.slug}>
+                    #{t.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -132,26 +150,44 @@ export default async function SearchPage({
         <div className="lg:col-span-3 space-y-6">
           {safeArticles.length === 0 ? (
             <div className="text-center p-12 border border-dashed rounded-xl text-gray-500 bg-white">
-              No matching articles found. Try modifying your search keywords or tags.
+              No matching articles found. Try modifying your search keywords or
+              tags.
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {safeArticles.map((article: any) => (
-                  <Link key={article._id} href={`/news/${article.slug}`} className="group bg-white rounded-xl border overflow-hidden hover:shadow-lg transition">
+                  <Link
+                    key={article._id}
+                    href={`/news/${article.slug}`}
+                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-lg transition"
+                  >
                     <div className="relative aspect-video">
-                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover" />
+                      <Image
+                        src={article.featuredImage}
+                        alt={article.title}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <div className="p-4">
                       {article.categoryId?.name && (
-                        <span className="text-[10px] font-bold text-primary uppercase">{article.categoryId.name}</span>
+                        <span className="text-[10px] font-bold text-primary uppercase">
+                          {article.categoryId.name}
+                        </span>
                       )}
-                      <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">{article.title}</h3>
+                      <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
+                        {article.title}
+                      </h3>
                       {article.summary && (
-                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{article.summary}</p>
+                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                          {article.summary}
+                        </p>
                       )}
                       <p className="text-[10px] text-gray-400 mt-2">
-                        {article.publishDate ? new Date(article.publishDate).toLocaleDateString() : ""}
+                        {article.publishDate
+                          ? new Date(article.publishDate).toLocaleDateString()
+                          : ""}
                       </p>
                     </div>
                   </Link>
