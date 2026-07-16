@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/database";
 import Category from "@/lib/database/models/category.model";
 import News from "@/lib/database/models/news.model";
+import Page from "@/lib/database/models/page.model";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { getAds } from "@/lib/actions/ad.actions";
 import Header from "@/components/shared/Header";
@@ -17,16 +18,18 @@ export default async function PublicLayout({
 }) {
   await connectToDatabase();
 
-  const [setting, navCategories, breakingNews, activeAds] = await Promise.all([
-    getSetting(),
-    Category.find({ isNavbar: true }).sort({ priority: 1, name: 1 }).lean(),
-    News.find({ breaking: true, status: "published" })
-      .select("title slug")
-      .sort({ publishDate: -1 })
-      .limit(10)
-      .lean(),
-    getAds({ status: "active" }),
-  ]);
+  const [setting, navCategories, breakingNews, activeAds, pages] =
+    await Promise.all([
+      getSetting(),
+      Category.find({ isNavbar: true }).sort({ priority: 1, name: 1 }).lean(),
+      News.find({ breaking: true, status: "published" })
+        .select("title slug")
+        .sort({ publishDate: -1 })
+        .limit(10)
+        .lean(),
+      getAds({ status: "active" }),
+      Page.find({ status: "published" }).sort({ createdAt: -1 }).lean(),
+    ]);
 
   const footerAd = activeAds.find((ad) => ad.placement === "footer");
   const popupAd = activeAds.find((ad) => ad.placement === "popup");
@@ -35,6 +38,7 @@ export default async function PublicLayout({
 
   const safeCategories = JSON.parse(JSON.stringify(navCategories));
   const safeBreaking = JSON.parse(JSON.stringify(breakingNews));
+  const safePages = JSON.parse(JSON.stringify(pages));
 
   // Convert socialLinks if it is a Map, or use directly if it's already a plain object
   const socialLinks = setting?.socialLinks
@@ -58,6 +62,7 @@ export default async function PublicLayout({
         phoneNumber={setting?.phoneNumber}
         address={setting?.address}
         socialLinks={socialLinks}
+        pages={safePages}
       />
       {popupAd && <Ad ad={popupAd} />}
       {stickyAd && <Ad ad={stickyAd} />}

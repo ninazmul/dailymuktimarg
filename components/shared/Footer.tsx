@@ -7,6 +7,7 @@ interface FooterProps {
   phoneNumber?: string;
   address?: string;
   socialLinks: Record<string, string>;
+  pages?: { _id: string; title: string; slug: string }[];
 }
 
 export default function Footer({
@@ -14,6 +15,7 @@ export default function Footer({
   phoneNumber,
   address,
   socialLinks,
+  pages = [],
 }: FooterProps) {
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -85,7 +87,7 @@ export default function Footer({
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/" className="hover:text-white transition">
-                  Home
+                  হোম
                 </Link>
               </li>
               <li>
@@ -93,30 +95,16 @@ export default function Footer({
                   Search
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/pages/about"
-                  className="hover:text-white transition"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/pages/contact"
-                  className="hover:text-white transition"
-                >
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/pages/privacy-policy"
-                  className="hover:text-white transition"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
+              {pages.map((page) => (
+                <li key={page._id}>
+                  <Link
+                    href={`/pages/${page.slug}`}
+                    className="hover:text-white transition"
+                  >
+                    {page.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
