@@ -9,6 +9,20 @@ export interface ISetting extends Document {
   headerScript?: string;
   footerScript?: string;
   maintenanceMode: boolean;
+  seo?: {
+    siteTitle?: string;
+    siteMetaDescription?: string;
+    siteKeywords?: string[];
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImage?: string;
+    twitterCardTitle?: string;
+    twitterCardDescription?: string;
+    twitterCardImage?: string;
+    canonicalUrlBase?: string;
+    googleAnalyticsId?: string;
+    googleSearchConsoleVerification?: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,6 +36,23 @@ const SettingSchema = new Schema(
     headerScript: { type: String },
     footerScript: { type: String },
     maintenanceMode: { type: Boolean, default: false },
+    seo: {
+      type: {
+        siteTitle: { type: String },
+        siteMetaDescription: { type: String },
+        siteKeywords: { type: [String], default: [] },
+        ogTitle: { type: String },
+        ogDescription: { type: String },
+        ogImage: { type: String },
+        twitterCardTitle: { type: String },
+        twitterCardDescription: { type: String },
+        twitterCardImage: { type: String },
+        canonicalUrlBase: { type: String },
+        googleAnalyticsId: { type: String },
+        googleSearchConsoleVerification: { type: String },
+      },
+      default: {},
+    },
   },
   { timestamps: true },
 );

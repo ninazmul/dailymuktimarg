@@ -8,6 +8,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import BreakingTicker from "@/components/shared/BreakingTicker";
 import Ad from "@/components/shared/Ad";
+import Script from "next/script";
 
 export const revalidate = 120;
 
@@ -47,8 +48,37 @@ export default async function PublicLayout({
       : (setting.socialLinks as unknown as Record<string, string>)
     : {};
 
+  const seo = setting?.seo || {};
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Google Analytics */}
+      {seo.googleAnalyticsId && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${seo.googleAnalyticsId}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${seo.googleAnalyticsId}');
+            `}
+          </Script>
+        </>
+      )}
+      
+      {/* Header Script */}
+      {setting?.headerScript && (
+        <Script
+          id="header-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: setting.headerScript }}
+        />
+      )}
+      
       <Header categories={safeCategories} socialLinks={socialLinks} />
       {safeBreaking.length > 0 && <BreakingTicker items={safeBreaking} />}
       <main className="flex-1">{children}</main>
@@ -77,6 +107,15 @@ export default async function PublicLayout({
       {mobileAds.map((ad) => (
         <Ad key={ad._id.toString()} ad={ad} />
       ))}
+      
+      {/* Footer Script */}
+      {setting?.footerScript && (
+        <Script
+          id="footer-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: setting.footerScript }}
+        />
+      )}
     </div>
   );
 }

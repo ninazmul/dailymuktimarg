@@ -33,6 +33,7 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
         headerScript: params.headerScript,
         footerScript: params.footerScript,
         maintenanceMode: params.maintenanceMode ?? false,
+        seo: params.seo,
       });
       await setting.save();
     } else {
@@ -43,6 +44,13 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
       if (params.headerScript !== undefined) setting.headerScript = params.headerScript;
       if (params.footerScript !== undefined) setting.footerScript = params.footerScript;
       if (params.maintenanceMode !== undefined) setting.maintenanceMode = params.maintenanceMode;
+      if (params.seo !== undefined) {
+        // Merge existing SEO with new params to preserve fields not being updated
+        setting.seo = {
+          ...(setting.seo || {}),
+          ...params.seo,
+        };
+      }
 
       await setting.save();
     }

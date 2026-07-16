@@ -3,7 +3,7 @@ import News from "@/lib/database/models/news.model";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, Tag, User, Share2 } from "lucide-react";
+import { Clock, Eye, Tag, User } from "lucide-react";
 import type { Metadata } from "next";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";

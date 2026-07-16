@@ -83,6 +83,20 @@ export type SettingFormParams = {
   headerScript?: string;
   footerScript?: string;
   maintenanceMode?: boolean;
+  seo?: {
+    siteTitle?: string;
+    siteMetaDescription?: string;
+    siteKeywords?: string[];
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImage?: string;
+    twitterCardTitle?: string;
+    twitterCardDescription?: string;
+    twitterCardImage?: string;
+    canonicalUrlBase?: string;
+    googleAnalyticsId?: string;
+    googleSearchConsoleVerification?: string;
+  };
 };
 
 // ====== AD PARAMS
