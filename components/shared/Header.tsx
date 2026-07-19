@@ -78,7 +78,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
             alt="Logo"
             width={200}
             height={50}
-            className="w-auto h-16"
+            className="w-auto h-16 md:h-24 lg:h-32"
           />
         </Link>
 
