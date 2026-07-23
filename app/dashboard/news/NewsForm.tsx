@@ -32,7 +32,7 @@ import { IAuthor } from "@/lib/database/models/author.model";
 import { INews } from "@/lib/database/models/news.model";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { generateSlug } from "@/lib/utils";
+import { generateSlug, getVideoEmbedUrl } from "@/lib/utils";
 import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 
 // Schema validation with Zod
@@ -379,18 +379,31 @@ export default function NewsForm({
                     <div className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="news-video">
-                          YouTube Video URL (Optional)
+                          YouTube / Video URL (Optional)
                         </Label>
                         <Input
                           id="news-video"
-                          placeholder="https://www.youtube.com/watch?v=..."
+                          placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/..."
                           {...register("video")}
                         />
                       </div>
-                      <div className="text-xs text-gray-400">
-                        Provide a valid video share link. If present, video
-                        player features will overlay on homepage layout spots.
+                      <div className="text-xs text-gray-500">
+                        Supports YouTube links (`youtube.com/watch?v=...`, `youtu.be/...`, `shorts/...`), Vimeo, or direct embed URLs.
                       </div>
+                      {watch("video") && getVideoEmbedUrl(watch("video")) && (
+                        <div className="space-y-1.5 pt-2">
+                          <Label className="text-xs text-emerald-700 font-semibold">Video Preview</Label>
+                          <div className="relative aspect-video w-full rounded-lg overflow-hidden border bg-black">
+                            <iframe
+                              src={getVideoEmbedUrl(watch("video"))!}
+                              title="Video Preview"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full border-0"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

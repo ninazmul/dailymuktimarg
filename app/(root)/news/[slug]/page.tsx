@@ -3,10 +3,11 @@ import News from "@/lib/database/models/news.model";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, Tag, User } from "lucide-react";
+import { Clock, Eye, Tag, User, Play } from "lucide-react";
 import type { Metadata } from "next";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
+import { getVideoEmbedUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -246,17 +247,27 @@ export default async function ArticlePage({ params }: PageProps) {
           )}
 
           {/* Video Embed */}
-          {article.video && (
-            <div className="mb-8 aspect-video rounded-xl overflow-hidden bg-black">
-              <iframe
-                src={article.video.replace("watch?v=", "embed/")}
-                title="Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
-          )}
+          {(() => {
+            const videoEmbedUrl = getVideoEmbedUrl(article.video);
+            if (!videoEmbedUrl) return null;
+            return (
+              <div className="mb-8 space-y-3">
+                <div className="flex items-center gap-2 text-red-600 font-bold text-base">
+                  <Play className="w-5 h-5 fill-red-600" />
+                  <span>Watch Video</span>
+                </div>
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-gray-200">
+                  <iframe
+                    src={videoEmbedUrl}
+                    title={article.title || "Video Player"}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Image Gallery */}
           {article.gallery && article.gallery.length > 0 && (
