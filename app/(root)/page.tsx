@@ -9,6 +9,7 @@ import Ad from "@/components/shared/Ad";
 import AdCarousel from "@/components/shared/AdCarousel";
 import Link from "next/link";
 import Image from "next/image";
+import { Sparkles, TrendingUp, Zap } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -53,6 +54,28 @@ export default async function HomePage() {
     .populate("categoryId", "name slug")
     .sort({ publishDate: -1 })
     .limit(9)
+    .lean();
+
+  // Fetch Editor's Featured Pick articles
+  const featuredArticles = await News.find({
+    status: "published",
+    featured: true,
+  })
+    .select(ARTICLE_CARD_FIELDS)
+    .populate("categoryId", "name slug")
+    .sort({ publishDate: -1 })
+    .limit(6)
+    .lean();
+
+  // Fetch Trending Articles Panel items
+  const trendingArticles = await News.find({
+    status: "published",
+    trending: true,
+  })
+    .select(ARTICLE_CARD_FIELDS)
+    .populate("categoryId", "name slug")
+    .sort({ publishDate: -1 })
+    .limit(6)
     .lean();
 
   // Pre-fetch articles for each section
@@ -158,6 +181,8 @@ export default async function HomePage() {
 
   const safeLeads = JSON.parse(JSON.stringify(leadArticles));
   const safeHeadlineArticles = JSON.parse(JSON.stringify(headlineGroupArticles));
+  const safeFeaturedArticles = JSON.parse(JSON.stringify(featuredArticles));
+  const safeTrendingArticles = JSON.parse(JSON.stringify(trendingArticles));
   const activePoll = await getActivePoll();
 
   // Function to find an ad for a specific section's adPlacement
@@ -287,6 +312,100 @@ export default async function HomePage() {
                   </div>
                 </Link>
               ))}
+            </section>
+          )}
+
+          {/* Editor's Featured Pick Section */}
+          {safeFeaturedArticles.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-black text-gray-900 border-l-4 border-purple-600 pl-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  Editor's Featured Picks
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {safeFeaturedArticles.map((article: any) => (
+                  <Link
+                    key={article._id}
+                    href={`/news/${article.slug}`}
+                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="relative aspect-video">
+                        <Image
+                          src={article.featuredImage}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                          <span className="text-[10px] font-bold bg-purple-600 text-white px-2 py-0.5 rounded">
+                            Featured
+                          </span>
+                          {article.categoryId?.name && (
+                            <span className="text-[10px] font-bold text-gray-500 uppercase">
+                              {article.categoryId.name}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                          {article.title}
+                        </h3>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Trending Articles Panel Section */}
+          {safeTrendingArticles.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-black text-gray-900 border-l-4 border-blue-600 pl-3 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  Trending Articles Panel
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {safeTrendingArticles.map((article: any) => (
+                  <Link
+                    key={article._id}
+                    href={`/news/${article.slug}`}
+                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="relative aspect-video">
+                        <Image
+                          src={article.featuredImage}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                          <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
+                            Trending
+                          </span>
+                          {article.categoryId?.name && (
+                            <span className="text-[10px] font-bold text-gray-500 uppercase">
+                              {article.categoryId.name}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                          {article.title}
+                        </h3>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </section>
           )}
 
