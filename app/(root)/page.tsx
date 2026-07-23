@@ -3,7 +3,9 @@ import HomepageLayout from "@/lib/database/models/homepageLayout.model";
 import News from "@/lib/database/models/news.model";
 import { getActivePoll } from "@/lib/actions/poll.actions";
 import { getAds } from "@/lib/actions/ad.actions";
+import { getGalleries } from "@/lib/actions/gallery.actions";
 import HomepageSection from "@/components/shared/HomepageSection";
+import HomepageGallerySection from "@/components/shared/HomepageGallerySection";
 import PollWidget from "@/components/shared/PollWidget";
 import Ad from "@/components/shared/Ad";
 import AdCarousel from "@/components/shared/AdCarousel";
@@ -184,6 +186,8 @@ export default async function HomePage() {
   const safeFeaturedArticles = JSON.parse(JSON.stringify(featuredArticles));
   const safeTrendingArticles = JSON.parse(JSON.stringify(trendingArticles));
   const activePoll = await getActivePoll();
+  const galleryResult = await getGalleries({ status: "published", limit: 6 });
+  const safeGalleries = JSON.parse(JSON.stringify(galleryResult.items));
 
   // Function to find an ad for a specific section's adPlacement
   const getAdForPlacement = (placement: string | undefined) => {
@@ -482,6 +486,9 @@ export default async function HomePage() {
               )}
             </div>
           ))}
+
+          {/* Homepage Photos / Gallery Section */}
+          <HomepageGallerySection galleries={safeGalleries} />
 
           {/* Poll Widget */}
           {activePoll && (

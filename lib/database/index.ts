@@ -13,6 +13,7 @@ import "./models/setting.model";
 import "./models/auditLog.model";
 import "./models/page.model";
 import "./models/menu.model";
+import "./models/gallery.model";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

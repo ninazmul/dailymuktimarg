@@ -155,3 +155,18 @@ export type HomepageLayoutFormParams = {
   };
   adPlacement?: "top" | "bottom" | "inline" | null;
 };
+
+// ===== GALLERY PARAMS =====
+export type SecondaryPhotoInput = {
+  url: string;
+  caption?: string;
+};
+
+export type GalleryFormParams = {
+  title: string;
+  subtitle?: string;
+  slug?: string;
+  mainImage: string;
+  secondaryPhotos?: SecondaryPhotoInput[];
+  status?: "published" | "draft";
+};
