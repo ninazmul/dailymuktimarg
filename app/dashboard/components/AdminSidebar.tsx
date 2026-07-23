@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   History,
   Settings as SettingsIcon,
+  Newspaper,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,6 +48,7 @@ const iconMap: Partial<
   categories: FolderTree,
   tags: Tag,
   "homepage-builder": LayoutGrid,
+  "todays-news": Newspaper,
   media: ImageIcon,
   gallery: Camera,
   reporters: PenTool,
@@ -65,6 +67,7 @@ const IMPLEMENTED_MODULES: CmsModule[] = [
   "categories",
   "tags",
   "homepage-builder",
+  "todays-news",
   "media",
   "gallery",
   "reporters",

@@ -97,6 +97,16 @@ export type SettingFormParams = {
     googleAnalyticsId?: string;
     googleSearchConsoleVerification?: string;
   };
+  todaysNewsLayout?: {
+    title?: string;
+    subtitle?: string;
+    layoutStyle?: "grid" | "list" | "leadGrid";
+    postsPerPage?: number;
+    showLeadHero?: boolean;
+    sortBy?: "publishDate" | "views";
+    showCategoryFilter?: boolean;
+    adPlacement?: "top" | "bottom" | "inline";
+  };
 };
 
 // ====== AD PARAMS

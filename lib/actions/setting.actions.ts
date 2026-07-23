@@ -34,6 +34,7 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
         footerScript: params.footerScript,
         maintenanceMode: params.maintenanceMode ?? false,
         seo: params.seo,
+        todaysNewsLayout: params.todaysNewsLayout,
       });
       await setting.save();
     } else {
@@ -51,11 +52,19 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
           ...params.seo,
         };
       }
+      if (params.todaysNewsLayout !== undefined) {
+        setting.todaysNewsLayout = {
+          ...(setting.todaysNewsLayout || {}),
+          ...params.todaysNewsLayout,
+        };
+      }
 
       await setting.save();
     }
 
     revalidatePath("/dashboard/settings");
+    revalidatePath("/dashboard/todays-news");
+    revalidatePath("/todays-news");
     revalidatePath("/");
     return safeJson(setting);
   } catch (error) {

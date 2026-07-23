@@ -385,3 +385,93 @@ export async function incrementNewsViews(id: string) {
     return { success: false };
   }
 }
+
+export async function getTodaysNewsArticles(params?: {
+  categoryId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: "publishDate" | "views";
+}) {
+  try {
+    await connectToDatabase();
+
+    const page = params?.page || 1;
+    const limit = params?.limit || 24;
+    const skip = (page - 1) * limit;
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const baseQuery: any = {
+      status: "published",
+    };
+
+    if (params?.categoryId && params.categoryId !== "all") {
+      baseQuery.categoryId = params.categoryId;
+    }
+
+    if (params?.search) {
+      const searchRegex = new RegExp(params.search, "i");
+      baseQuery.$or = [{ title: searchRegex }, { summary: searchRegex }];
+    }
+
+    const todayQuery = {
+      ...baseQuery,
+      publishDate: { $gte: todayStart, $lte: todayEnd },
+    };
+
+    const sortField = params?.sortBy === "views" ? "views" : "publishDate";
+
+    // Count today's articles first
+    let todayCount = await News.countDocuments(todayQuery);
+    let articles: INews[] = [];
+    let isTodayOnly = true;
+    let totalCount = todayCount;
+
+    if (todayCount > 0) {
+      articles = await News.find(todayQuery)
+        .select(NEWS_LIST_FIELDS + " summary")
+        .populate("categoryId", "name slug")
+        .populate("reporterId", "name image")
+        .populate("authorId", "name image")
+        .sort({ [sortField]: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean<INews[]>();
+    } else {
+      // Fallback: If no news published today yet, return latest published news
+      isTodayOnly = false;
+      totalCount = await News.countDocuments(baseQuery);
+      articles = await News.find(baseQuery)
+        .select(NEWS_LIST_FIELDS + " summary")
+        .populate("categoryId", "name slug")
+        .populate("reporterId", "name image")
+        .populate("authorId", "name image")
+        .sort({ [sortField]: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean<INews[]>();
+    }
+
+    return {
+      articles: safeJson(articles),
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit) || 1,
+      currentPage: page,
+      isTodayOnly,
+    };
+  } catch (error) {
+    handleError(error);
+    return {
+      articles: [],
+      totalCount: 0,
+      totalPages: 1,
+      currentPage: 1,
+      isTodayOnly: false,
+    };
+  }
+}

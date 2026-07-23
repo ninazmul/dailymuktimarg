@@ -236,7 +236,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
           {/* Line 2: Today's Paper & Social Media Dropdown */}
           <div className="flex items-center justify-center gap-3 text-xs lg:text-sm font-bold whitespace-nowrap">
             <Link
-              href="/search?filter=today"
+              href="/todays-news"
               className="text-gray-800 hover:text-primary transition-colors flex items-center gap-1.5"
             >
               <Newspaper className="w-4 h-4 text-primary flex-shrink-0" />
