@@ -24,7 +24,7 @@ export default function HomepageGallerySection({ galleries }: HomepageGallerySec
             </div>
             <div>
               <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                ফটো গ্যালারি <span className="text-primary font-medium text-lg">/ Photo Gallery</span>
+                ক্লিকস্মৃতি <span className="text-primary font-medium text-lg">/ Photo Gallery</span>
               </h2>
               <p className="text-xs sm:text-sm text-gray-400">
                 Explore our curated visual stories and photo albums

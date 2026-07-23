@@ -28,7 +28,7 @@ export default async function GalleryListPage() {
 
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
             <Camera className="w-8 h-8 text-primary" />
-            ফটো গ্যালারি ও চিত্র অ্যালবাম
+            ক্লিকস্মৃতি ও চিত্র অ্যালবাম
           </h1>
           <p className="text-gray-400 text-sm sm:text-base mt-2 max-w-2xl">
             সংবাদ ও সাম্প্রতিক ঘটনাবলীর সেরা সব আলোকচিত্র এবং ফটো অ্যালবামগুলো একসাথে দেখুন।
