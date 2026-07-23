@@ -1,9 +1,10 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database";
-import News, { INews } from "@/lib/database/models/news.model";
+import News, { INews, NewsStatus } from "@/lib/database/models/news.model";
 import AuditLog from "@/lib/database/models/auditLog.model";
 import { requirePermission } from "@/lib/auth/rbac";
+import { hasPermission } from "@/lib/auth/rbac-rules";
 import { NewsFormParams } from "@/types";
 import { safeJson, handleError, generateSlug } from "@/lib/utils";
 import { revalidateTag as _revalidateTag, revalidatePath } from "next/cache";
@@ -15,7 +16,7 @@ const NEWS_LIST_FIELDS =
 // ===== Helpers =====
 
 /**
- * Ensures that if a new article is assigned a lead position (1 to 6),
+ * Ensures that if a new article is assigned a lead position (1 to 12),
  * any previous article occupying that position is unset.
  */
 async function resolveLeadPositionConflicts(position: number, currentId?: string) {
@@ -125,6 +126,8 @@ export async function getNewsArticleById(id: string): Promise<INews | null> {
 
 export async function createNewsArticle(params: NewsFormParams): Promise<INews> {
   const adminAccess = await requirePermission("news", "create");
+  const canPublish = hasPermission(adminAccess, "news", "publish");
+
   try {
     await connectToDatabase();
 
@@ -136,6 +139,12 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
       throw new Error(`Article slug "${slug}" is already in use.`);
     }
 
+    // Force status to "review" if user lacks publish access and attempts to set "published"
+    let status = params.status || "draft";
+    if (status === "published" && !canPublish) {
+      status = "review";
+    }
+
     // Resolve conflicts if assigned to homepage lead position
     if (params.lead && params.leadPosition) {
       await resolveLeadPositionConflicts(params.leadPosition);
@@ -143,6 +152,7 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
 
     const newArticle = await News.create({
       ...params,
+      status,
       slug,
       views: 0,
       publishDate: params.publishDate ? new Date(params.publishDate) : new Date(),
@@ -150,10 +160,12 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
 
     await AuditLog.create({
       userId: adminAccess.dbUserId,
-      action: "create",
+      action: status === "published" ? "publish" : "create",
       module: "news",
       targetId: newArticle._id.toString(),
-      details: `Created article "${params.title}"`,
+      details: status === "published"
+        ? `Created and published article "${params.title}"`
+        : `Created article "${params.title}" (Status: ${status})`,
     });
 
     // Clear caches
@@ -171,6 +183,8 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
 
 export async function updateNewsArticle(id: string, params: NewsFormParams): Promise<INews> {
   const adminAccess = await requirePermission("news", "update");
+  const canPublish = hasPermission(adminAccess, "news", "publish");
+
   try {
     await connectToDatabase();
 
@@ -186,6 +200,17 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
       }
     }
 
+    // Status security check: non-publishers cannot set or publish articles directly
+    let status = params.status || article.status;
+    if (status === "published" && !canPublish) {
+      if (article.status !== "published") {
+        throw new Error("Forbidden: You do not have permission to publish news articles.");
+      } else {
+        // Sent for re-review if edited by non-publisher
+        status = "review";
+      }
+    }
+
     // Resolve conflicts if assigned to homepage lead position
     if (params.lead && params.leadPosition) {
       await resolveLeadPositionConflicts(params.leadPosition, id);
@@ -197,6 +222,7 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
       {
         $set: {
           ...params,
+          status,
           slug,
           publishDate: params.publishDate ? new Date(params.publishDate) : article.publishDate,
         },
@@ -211,7 +237,7 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
       action: "update",
       module: "news",
       targetId: id,
-      details: `Updated article "${params.title}"`,
+      details: `Updated article "${params.title}" (Status: ${status})`,
     });
 
     // Clear caches
@@ -220,6 +246,98 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
     revalidatePath(`/news/${slug}`);
     revalidatePath("/dashboard/news");
     revalidatePath("/");
+
+    return safeJson(updated);
+  } catch (error) {
+    handleError(error);
+    throw error;
+  }
+}
+
+export async function approveNewsArticle(id: string): Promise<INews> {
+  const adminAccess = await requirePermission("news", "publish");
+  try {
+    await connectToDatabase();
+
+    const article = await News.findById(id);
+    if (!article) throw new Error("Article not found");
+
+    const updated = await News.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          status: "published",
+          publishDate: article.publishDate || new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    );
+
+    if (!updated) throw new Error("Approval failed");
+
+    await AuditLog.create({
+      userId: adminAccess.dbUserId,
+      action: "publish",
+      module: "news",
+      targetId: id,
+      details: `Approved and published article "${article.title}"`,
+    });
+
+    revalidateTag("news");
+    revalidateTag("homepage");
+    revalidatePath("/dashboard/news");
+    revalidatePath("/");
+    if (updated.slug) {
+      revalidatePath(`/news/${updated.slug}`);
+    }
+
+    return safeJson(updated);
+  } catch (error) {
+    handleError(error);
+    throw error;
+  }
+}
+
+export async function updateNewsStatus(
+  id: string,
+  status: NewsStatus,
+): Promise<INews> {
+  const requiredAction = status === "published" ? "publish" : "update";
+  const adminAccess = await requirePermission("news", requiredAction);
+  try {
+    await connectToDatabase();
+
+    const article = await News.findById(id);
+    if (!article) throw new Error("Article not found");
+
+    const updateFields: any = { status };
+    if (status === "published" && !article.publishDate) {
+      updateFields.publishDate = new Date();
+    }
+
+    const updated = await News.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { returnDocument: "after" },
+    );
+
+    if (!updated) throw new Error("Status update failed");
+
+    await AuditLog.create({
+      userId: adminAccess.dbUserId,
+      action: status === "published" ? "publish" : "update",
+      module: "news",
+      targetId: id,
+      details: `Changed status of article "${article.title}" to ${status}`,
+    });
+
+    revalidateTag("news");
+    revalidateTag("homepage");
+    revalidatePath("/dashboard/news");
+    revalidatePath("/");
+    if (updated.slug) {
+      revalidatePath(`/news/${updated.slug}`);
+    }
 
     return safeJson(updated);
   } catch (error) {

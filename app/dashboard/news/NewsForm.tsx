@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Sparkles } from "lucide-react";
+import { Image as ImageIcon, Sparkles, CheckCircle, AlertCircle } from "lucide-react";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import MediaLibraryModal from "@/components/shared/MediaLibrary/MediaLibraryModal";
 import {
@@ -33,6 +33,7 @@ import { INews } from "@/lib/database/models/news.model";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { generateSlug } from "@/lib/utils";
+import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 
 // Schema validation with Zod
 const formSchema = z.object({
@@ -69,6 +70,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface NewsFormProps {
+  access?: DashboardAccess;
   initialData?: INews;
   categories: ICategory[];
   tags: ITag[];
@@ -77,6 +79,7 @@ interface NewsFormProps {
 }
 
 export default function NewsForm({
+  access,
   initialData,
   categories,
   tags,
@@ -101,6 +104,8 @@ export default function NewsForm({
       .slice(0, 16);
     return localISOTime;
   };
+
+  const canPublish = access ? hasPermission(access, "news", "publish") : true;
 
   const {
     register,
@@ -131,7 +136,7 @@ export default function NewsForm({
       location: initialData?.location || "",
       publishDate: formatDateValue(initialData?.publishDate),
       schedulePublish: formatDateValue(initialData?.schedulePublish),
-      status: initialData?.status || "draft",
+      status: initialData?.status || (canPublish ? "draft" : "review"),
       seoTitle: initialData?.seoTitle || "",
       metaDescription: initialData?.metaDescription || "",
       keywordsString: initialData?.keywords?.join(", ") || "",
@@ -203,10 +208,18 @@ export default function NewsForm({
 
       if (initialData) {
         await updateNewsArticle(initialData._id.toString(), payload);
-        toast.success("Article updated successfully.");
+        toast.success(
+          payload.status === "review"
+            ? "Article updated and submitted for review."
+            : "Article updated successfully."
+        );
       } else {
         await createNewsArticle(payload);
-        toast.success("Article published successfully.");
+        toast.success(
+          payload.status === "published"
+            ? "Article published successfully."
+            : "Article submitted for review successfully."
+        );
       }
       router.push("/dashboard/news");
       router.refresh();
@@ -455,14 +468,32 @@ export default function NewsForm({
                       <SelectContent>
                         <SelectItem value="draft">Draft</SelectItem>
                         <SelectItem value="review">
-                          Submit for Review
+                          Submit for Review (Under Review)
                         </SelectItem>
-                        <SelectItem value="published">Publish Now</SelectItem>
+                        {canPublish && (
+                          <SelectItem value="published">Publish Now</SelectItem>
+                        )}
                         <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
+                {!canPublish && (
+                  <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-md border border-amber-200 mt-2 flex items-start gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <span>
+                      You do not have publish permission. This article will be submitted to the review queue for approval.
+                    </span>
+                  </div>
+                )}
+                {canPublish && watch("status") === "review" && (
+                  <div className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-md border border-emerald-200 mt-2 flex items-start gap-1.5">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <span>
+                      As a publisher, you can approve and publish this article directly by selecting "Publish Now".
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -776,24 +807,11 @@ export default function NewsForm({
                             <SelectValue placeholder="Select Position" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">
-                              Position 1 (Hero Lead)
-                            </SelectItem>
-                            <SelectItem value="2">
-                              Position 2 (Secondary Grid)
-                            </SelectItem>
-                            <SelectItem value="3">
-                              Position 3 (Secondary Grid)
-                            </SelectItem>
-                            <SelectItem value="4">
-                              Position 4 (Secondary Grid)
-                            </SelectItem>
-                            <SelectItem value="5">
-                              Position 5 (Secondary Grid)
-                            </SelectItem>
-                            <SelectItem value="6">
-                              Position 6 (Secondary Grid)
-                            </SelectItem>
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map((pos) => (
+                              <SelectItem key={pos} value={pos.toString()}>
+                                Position {pos} {pos === 1 ? "(Hero Lead)" : "(Secondary Grid)"}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -804,18 +822,42 @@ export default function NewsForm({
             </CardContent>
           </Card>
 
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full justify-center"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? "Saving Article..."
-              : initialData
-                ? "Save Changes"
-                : "Publish Article"}
-          </Button>
+          <div className="space-y-3">
+            {canPublish && initialData && initialData.status !== "published" && (
+              <Button
+                type="button"
+                size="lg"
+                className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setValue("status", "published");
+                  handleSubmit(onSubmit)();
+                }}
+              >
+                <CheckCircle className="w-5 h-5" />
+                Approve & Publish Article
+              </Button>
+            )}
+
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full justify-center"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Saving Article..."
+                : !canPublish
+                  ? initialData
+                    ? "Update & Submit for Review"
+                    : "Submit for Review"
+                  : initialData
+                    ? "Save Changes"
+                    : watch("status") === "published"
+                      ? "Publish Article"
+                      : "Save Draft / Review"}
+            </Button>
+          </div>
         </div>
       </div>
 

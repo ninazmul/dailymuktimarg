@@ -29,11 +29,14 @@ import {
   ChevronRight,
   Eye,
   Star,
+  CheckCircle2,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { INews } from "@/lib/database/models/news.model";
 import { ICategory } from "@/lib/database/models/category.model";
-import { deleteNewsArticle, getNewsArticles } from "@/lib/actions/news.actions";
+import { deleteNewsArticle, getNewsArticles, approveNewsArticle } from "@/lib/actions/news.actions";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -69,10 +72,26 @@ export default function NewsClient({
   const [category, setCategory] = useState(initialCategory || "all");
   const [status, setStatus] = useState(initialStatus || "all");
   const [isLoading, setIsLoading] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
   const canCreate = hasPermission(access, "news", "create");
   const canUpdate = hasPermission(access, "news", "update");
   const canDelete = hasPermission(access, "news", "delete");
-  const canMutate = canUpdate || canDelete;
+  const canPublish = hasPermission(access, "news", "publish");
+  const canMutate = canUpdate || canDelete || canPublish;
+
+  const handleApprove = async (id: string) => {
+    setApprovingId(id);
+    try {
+      await approveNewsArticle(id);
+      toast.success("Article approved and published!");
+      reloadArticles();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to approve article.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
 
   const reloadArticles = async (
     page = result.currentPage,
@@ -205,18 +224,37 @@ export default function NewsClient({
         </Select>
 
         <Select value={status} onValueChange={(val) => handleFilterChange("status", val)}>
-          <SelectTrigger className="w-full md:w-[150px]">
+          <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="review">Under Review</SelectItem>
+            <SelectItem value="review">Under Review (Pending)</SelectItem>
             <SelectItem value="published">Published</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {canPublish && (
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-amber-50/80 border border-amber-200/80 rounded-lg p-3 text-xs text-amber-900 gap-2">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>Articles submitted by non-publishing users require approval before going live on the homepage.</span>
+          </div>
+          {status !== "review" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white border-amber-300 text-amber-900 hover:bg-amber-100 text-xs h-7 whitespace-nowrap"
+              onClick={() => handleFilterChange("status", "review")}
+            >
+              View Pending Approval
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Table */}
       {isLoading ? (
@@ -238,7 +276,7 @@ export default function NewsClient({
                 <TableHead>Lead Placement</TableHead>
                 <TableHead>Status</TableHead>
                 {canMutate && (
-                  <TableHead className="w-[100px] text-right">Actions</TableHead>
+                  <TableHead className="w-[160px] text-right">Actions</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -288,6 +326,23 @@ export default function NewsClient({
                   {canMutate && (
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {canPublish && article.status !== "published" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 border-emerald-500 text-emerald-700 hover:bg-emerald-50 gap-1 text-xs px-2 font-medium"
+                            title="Approve and publish article"
+                            onClick={() => handleApprove(article._id.toString())}
+                            disabled={approvingId === article._id.toString()}
+                          >
+                            {approvingId === article._id.toString() ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                            ) : (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            )}
+                            Approve
+                          </Button>
+                        )}
                         {canUpdate && (
                           <Button asChild size="icon" variant="ghost" className="h-8 w-8">
                             <Link href={`/dashboard/news/${article._id}/edit`}>

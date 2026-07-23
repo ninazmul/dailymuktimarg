@@ -14,7 +14,7 @@ export default async function EditNewsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requirePermission("news", "update");
+  const access = await requirePermission("news", "update");
 
   const resolvedParams = await params;
   const articleId = resolvedParams.id;
@@ -40,6 +40,7 @@ export default async function EditNewsPage({
         </p>
       </div>
       <NewsForm
+        access={access}
         initialData={article}
         categories={categories}
         tags={tags}

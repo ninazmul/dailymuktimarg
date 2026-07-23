@@ -32,7 +32,7 @@ export interface INews extends Document {
   breaking: boolean;
   headline?: string; // e.g. "Top Headlines"
   lead: boolean;
-  leadPosition?: number; // 1 to 6
+  leadPosition?: number; // 1 to 12
   relatedNews: Types.ObjectId[]; // References News
   createdAt?: Date;
   updatedAt?: Date;

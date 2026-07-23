@@ -41,7 +41,7 @@ export default async function HomePage() {
     .select(`${ARTICLE_CARD_FIELDS} lead`)
     .populate("categoryId", "name slug")
     .sort({ leadPosition: 1 })
-    .limit(6)
+    .limit(12)
     .lean();
 
   // Pre-fetch articles for each section
@@ -229,7 +229,7 @@ export default async function HomePage() {
           {/* Secondary Lead Row */}
           {safeLeads.length > 3 && (
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {safeLeads.slice(3, 6).map((article: any) => (
+              {safeLeads.slice(3, 12).map((article: any) => (
                 <Link
                   key={article._id}
                   href={`/news/${article.slug}`}

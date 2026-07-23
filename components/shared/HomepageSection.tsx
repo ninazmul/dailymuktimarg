@@ -18,6 +18,10 @@ interface HomepageSectionProps {
     summary?: string;
     publishDate?: string;
     categoryId?: { name: string; slug: string };
+    headline?: string;
+    featured?: boolean;
+    trending?: boolean;
+    breaking?: boolean;
   }[];
 }
 
@@ -49,9 +53,21 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
                 <Image src={article.featuredImage} alt={article.title} fill className="object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                {article.categoryId?.name && (
-                  <span className="text-[10px] font-bold text-primary uppercase">{article.categoryId.name}</span>
-                )}
+                <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                  {article.categoryId?.name && (
+                    <span className="text-[10px] font-bold text-primary uppercase">{article.categoryId.name}</span>
+                  )}
+                  {article.headline && article.headline !== "none" && (
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                      {article.headline}
+                    </span>
+                  )}
+                  {article.featured && (
+                    <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                      Featured
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
                   {article.title}
                 </h3>
@@ -66,20 +82,34 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
         /* Grid Layout (default) */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {articles.map((article) => (
-            <Link key={article._id} href={`/news/${article.slug}`} className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition">
-              <div className="relative aspect-video">
-                <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-              </div>
-              <div className="p-4">
-                {article.categoryId?.name && (
-                  <span className="text-[10px] font-bold text-primary uppercase">{article.categoryId.name}</span>
-                )}
-                <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
-                  {article.title}
-                </h3>
-                {article.summary && (
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{article.summary}</p>
-                )}
+            <Link key={article._id} href={`/news/${article.slug}`} className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-video">
+                  <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                    {article.categoryId?.name && (
+                      <span className="text-[10px] font-bold text-primary uppercase">{article.categoryId.name}</span>
+                    )}
+                    {article.headline && article.headline !== "none" && (
+                      <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                        {article.headline}
+                      </span>
+                    )}
+                    {article.featured && (
+                      <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                    {article.title}
+                  </h3>
+                  {article.summary && (
+                    <p className="text-xs text-gray-500 mt-2 line-clamp-2">{article.summary}</p>
+                  )}
+                </div>
               </div>
             </Link>
           ))}

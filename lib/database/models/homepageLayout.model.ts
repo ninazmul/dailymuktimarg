@@ -18,6 +18,7 @@ export interface IHomepageLayout extends Document {
     trending?: boolean;
     breaking?: boolean;
     hasVideo?: boolean;
+    headline?: string;
   };
   adPlacement?: "top" | "bottom" | "inline";
   createdAt?: Date;
@@ -52,6 +53,7 @@ const HomepageLayoutSchema = new Schema(
         trending: Boolean,
         breaking: Boolean,
         hasVideo: Boolean,
+        headline: String,
       },
       default: {},
     },

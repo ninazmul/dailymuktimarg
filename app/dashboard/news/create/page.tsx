@@ -8,7 +8,7 @@ import NewsForm from "../NewsForm";
 export const dynamic = "force-dynamic";
 
 export default async function CreateNewsPage() {
-  await requirePermission("news", "create");
+  const access = await requirePermission("news", "create");
 
   const [categories, tags, reporters, authors] = await Promise.all([
     getCategories(),
@@ -24,10 +24,11 @@ export default async function CreateNewsPage() {
           Create News Article
         </h2>
         <p className="text-sm text-gray-500">
-          Draft, schedule, or publish a new article.
+          Draft, schedule, or submit a new article for review.
         </p>
       </div>
       <NewsForm
+        access={access}
         categories={categories}
         tags={tags}
         reporters={reporters}

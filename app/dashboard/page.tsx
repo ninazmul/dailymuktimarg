@@ -481,8 +481,8 @@ export default async function DashboardPage() {
               <Star className="w-5 h-5 text-primary" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {Array.from({ length: 6 }, (_, i) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
+              {Array.from({ length: 12 }, (_, i) => {
                 const position = i + 1;
                 const story = leadStories.find((item: any) => item.leadPosition === position);
                 return (
