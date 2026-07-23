@@ -22,7 +22,7 @@ module.exports = withUt({
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#A51C30", // primary as the primary brand color
+          DEFAULT: "#226B3A",
           foreground: "#FFFFFF",
         },
         cvsGreen: {
