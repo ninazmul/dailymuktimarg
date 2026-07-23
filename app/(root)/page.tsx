@@ -227,7 +227,7 @@ export default async function HomePage() {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-2xl md:text-3xl font-black text-white leading-tight group-hover:underline">
+                      <h2 className="text-2xl md:text-3xl font-black text-white leading-tight group-hover:underline line-clamp-2">
                         {safeLeads[0].title}
                       </h2>
                       {safeLeads[0].summary && (
