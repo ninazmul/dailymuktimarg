@@ -12,9 +12,9 @@ export default function BreakingTicker({ items }: BreakingTickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="bg-red-600 text-white overflow-hidden">
+    <div className="bg-[#226B3A] text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 flex items-center h-9">
-        <div className="flex items-center gap-2 shrink-0 pr-4 border-r border-red-400 mr-4">
+        <div className="flex items-center gap-2 shrink-0 pr-4 border-r border-white mr-4">
           <Zap className="w-4 h-4 animate-pulse" />
           <span className="text-xs font-bold uppercase tracking-wider">Breaking</span>
         </div>
