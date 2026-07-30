@@ -13,6 +13,46 @@ const revalidateTag = _revalidateTag as (tag: string) => void;
 export async function getHomepageSections(): Promise<IHomepageLayout[]> {
   try {
     await connectToDatabase();
+    let count = await HomepageLayout.countDocuments();
+    
+    if (count === 0) {
+      // Auto-seed default homepage sections if empty
+      await HomepageLayout.create([
+        {
+          sectionName: "Lead Stories",
+          sectionType: "lead",
+          layoutType: "sidebarLayout",
+          postsCount: 5,
+          enabled: true,
+          order: 0,
+        },
+        {
+          sectionName: "Featured Picks",
+          sectionType: "featured",
+          layoutType: "grid",
+          postsCount: 6,
+          enabled: true,
+          order: 1,
+        },
+        {
+          sectionName: "Trending News",
+          sectionType: "trending",
+          layoutType: "slider",
+          postsCount: 6,
+          enabled: true,
+          order: 2,
+        },
+        {
+          sectionName: "Video News Gallery",
+          sectionType: "videoGallery",
+          layoutType: "grid",
+          postsCount: 4,
+          enabled: true,
+          order: 3,
+        },
+      ]);
+    }
+
     const sections = await HomepageLayout.find()
       .populate("categoryId", "name slug")
       .sort({ order: 1 })

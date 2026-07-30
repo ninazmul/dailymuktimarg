@@ -94,6 +94,20 @@ export default async function HomePage() {
         if (section.filters.headline) query.headline = section.filters.headline;
       }
 
+      if (section.sectionType === "lead" || section.sectionType === "hero") {
+        query.lead = true;
+        const articles = await News.find(query)
+          .select(ARTICLE_CARD_FIELDS)
+          .populate("categoryId", "name slug")
+          .sort({ leadPosition: 1, publishDate: -1 })
+          .limit(section.postsCount || 6)
+          .lean();
+        return {
+          section: JSON.parse(JSON.stringify(section)),
+          articles: JSON.parse(JSON.stringify(articles)),
+        };
+      }
+
       if (section.sectionType === "trending") {
         const articles = await News.find(query)
           .select(ARTICLE_CARD_FIELDS)

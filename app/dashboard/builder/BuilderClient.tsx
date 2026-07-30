@@ -44,22 +44,20 @@ import { toast } from "react-hot-toast";
 import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 
 const SECTION_TYPES = [
-  { value: "hero", label: "Hero Banner" },
-  { value: "lead", label: "Lead Stories Grid" },
-  { value: "categoryGrid", label: "Category News Grid" },
-  { value: "trending", label: "Trending Now" },
-  { value: "breaking", label: "Breaking News" },
-  { value: "featured", label: "Featured Articles" },
-  { value: "widgets", label: "Widgets Row" },
-  { value: "videoGallery", label: "Video Gallery" },
-  { value: "photoGallery", label: "Photo Gallery" },
+  { value: "categoryGrid", label: "Category News Block" },
+  { value: "lead", label: "Lead Stories Block" },
+  { value: "featured", label: "Featured Picks Block" },
+  { value: "trending", label: "Trending News Block" },
+  { value: "breaking", label: "Breaking News Block" },
+  { value: "videoGallery", label: "Video News Gallery" },
+  { value: "photoGallery", label: "Photo News Gallery" },
 ];
 
 const LAYOUT_TYPES = [
-  { value: "grid", label: "Grid" },
-  { value: "list", label: "List" },
-  { value: "slider", label: "Slider" },
-  { value: "sidebarLayout", label: "Sidebar Layout" },
+  { value: "grid", label: "Grid (3 Columns)" },
+  { value: "list", label: "List (Horizontal Rows)" },
+  { value: "slider", label: "Slider / Carousel" },
+  { value: "sidebarLayout", label: "Sidebar Layout (1 Big + Side Stack)" },
 ];
 
 const AD_PLACEMENT_OPTIONS = [
