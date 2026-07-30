@@ -116,13 +116,13 @@ export default async function ArticlePage({ params }: PageProps) {
       },
       ...(article.categoryId
         ? [
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: article.categoryId.name,
-              item: `${baseUrl}/category/${article.categoryId.slug}`,
-            },
-          ]
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: article.categoryId.name,
+            item: `${baseUrl}/category/${article.categoryId.slug}`,
+          },
+        ]
         : []),
     ],
   };
@@ -228,18 +228,67 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Featured Image */}
+          {/* Featured Image with Photo Frame & Logo on Bottom Border */}
           {article.featuredImage && (
-            <figure className="mb-8">
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm">
-                <Image
-                  src={article.featuredImage}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
+            <figure className="mb-10">
+              {/*
+               * Frame structure:
+               *  ┌──────────────────────────────────┐  ← top border (bg-primary, 4px md:8px)
+               *  │           [image]                │  ← left/right borders
+               *  ├──────────────────────────────────┤
+               *  │  ─────────── [LOGO] ───────────  │  ← bottom border band
+               *  └──────────────────────────────────┘
+               */}
+              <div
+                className="rounded-2xl bg-primary overflow-hidden"
+                style={{
+                  boxShadow: "0 4px 24px rgba(34,107,58,0.22), 0 1.5px 6px rgba(0,0,0,0.10)",
+                }}
+              >
+                {/* ── Image inside full padding (all 4 sides bordered) ── */}
+                <div className="p-[4px] md:p-[10px] pb-[4px] md:pb-[10px]">
+                  <div className="relative">
+                    {/* Top corner accents */}
+                    <span className="absolute top-0 left-0 w-5 h-5 md:w-7 md:h-7 border-t-2 border-l-2 md:border-t-[3px] md:border-l-[3px] border-white/40 rounded-tl-lg pointer-events-none z-10" />
+                    <span className="absolute top-0 right-0 w-5 h-5 md:w-7 md:h-7 border-t-2 border-r-2 md:border-t-[3px] md:border-r-[3px] border-white/40 rounded-tr-lg pointer-events-none z-10" />
+                    {/* Bottom corner accents */}
+                    <span className="absolute bottom-0 left-0 w-5 h-5 md:w-7 md:h-7 border-b-2 border-l-2 md:border-b-[3px] md:border-l-[3px] border-white/40 rounded-bl-lg pointer-events-none z-10" />
+                    <span className="absolute bottom-0 right-0 w-5 h-5 md:w-7 md:h-7 border-b-2 border-r-2 md:border-b-[3px] md:border-r-[3px] border-white/40 rounded-br-lg pointer-events-none z-10" />
+
+                    {/* Image — fully rounded on all 4 corners */}
+                    <div className="relative aspect-video rounded-xl overflow-hidden">
+                      <Image
+                        src={article.featuredImage}
+                        alt={article.title}
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Bottom border band: ─── LOGO ─── ── */}
+                <div className="flex items-center gap-0 px-3 md:px-6 py-2 md:py-3">
+                  {/* Left line */}
+                  <div className="flex-1 h-[1.5px] md:h-[2px] bg-white/40 rounded-full" />
+
+                  {/* Logo badge */}
+                  <div className="mx-3 md:mx-5 flex items-center gap-2 bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-lg border-2 border-primary/20 shrink-0">
+                    <Image
+                      src="/assets/images/logo.webp"
+                      alt="Daily Muktimarg"
+                      width={120}
+                      height={36}
+                      className="h-5 md:h-7 w-auto object-contain"
+                    />
+                  </div>
+
+                  {/* Right line */}
+                  <div className="flex-1 h-[1.5px] md:h-[2px] bg-white/40 rounded-full" />
+                </div>
               </div>
+
               {article.imageCaption && (
                 <figcaption className="text-xs text-gray-500 italic mt-2 text-center bg-gray-50 py-1.5 px-3 rounded-md border border-gray-100">
                   📷 {article.imageCaption}
@@ -271,9 +320,24 @@ export default async function ArticlePage({ params }: PageProps) {
             );
           })()}
 
+          {/* Article Body */}
+          <article
+            className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-xl"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
+
+          {/* Inline Ads */}
+          {inlineAds.length > 0 && (
+            <div className="my-8 max-w-3xl mx-auto space-y-4">
+              {inlineAds.map((ad) => (
+                <Ad key={ad._id.toString()} ad={ad} />
+              ))}
+            </div>
+          )}
+
           {/* Image Gallery */}
           {article.gallery && article.gallery.length > 0 && (
-            <div className="mb-8 p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
+            <div className="mt-8 p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span>🖼️ ফটো গ্যালারি</span>
                 <span className="text-xs font-normal text-gray-500">({article.gallery.length} photos)</span>
@@ -304,21 +368,6 @@ export default async function ArticlePage({ params }: PageProps) {
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* Article Body */}
-          <article
-            className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-primary prose-img:rounded-xl"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
-
-          {/* Inline Ads */}
-          {inlineAds.length > 0 && (
-            <div className="my-8 max-w-3xl mx-auto space-y-4">
-              {inlineAds.map((ad) => (
-                <Ad key={ad._id.toString()} ad={ad} />
-              ))}
             </div>
           )}
 
