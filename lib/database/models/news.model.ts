@@ -2,6 +2,11 @@ import { Document, Schema, Types, model, models } from "mongoose";
 
 export type NewsStatus = "draft" | "review" | "published" | "archived";
 
+export interface GalleryItem {
+  url: string;
+  caption?: string;
+}
+
 export interface INews extends Document {
   _id: Types.ObjectId;
   title: string;
@@ -10,7 +15,8 @@ export interface INews extends Document {
   summary?: string;
   content?: string;
   featuredImage: string;
-  gallery: string[];
+  imageCaption?: string;
+  gallery: GalleryItem[];
   video?: string;
   categoryId: Types.ObjectId; // References Category
   nestedCategoryId?: Types.ObjectId; // References Category
@@ -46,7 +52,13 @@ const NewsSchema = new Schema(
     summary: { type: String },
     content: { type: String },
     featuredImage: { type: String, required: true },
-    gallery: [{ type: String }],
+    imageCaption: { type: String, default: "" },
+    gallery: [
+      {
+        url: { type: String, required: true },
+        caption: { type: String, default: "" },
+      },
+    ],
     video: { type: String },
     categoryId: {
       type: Schema.Types.ObjectId,

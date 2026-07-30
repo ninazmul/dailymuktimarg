@@ -5,9 +5,25 @@ import { useState, useEffect, useRef } from "react";
 import { Menu, X, Calendar, Newspaper, Share2, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
+export interface HeaderCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  parentId?: string | { _id: string; name?: string; slug?: string } | null;
+  isNavbar?: boolean;
+  priority?: number;
+}
+
 interface HeaderProps {
-  categories: { _id: string; name: string; slug: string }[];
+  categories: HeaderCategory[];
   socialLinks: Record<string, string>;
+}
+
+function getCatId(id: any): string | null {
+  if (!id) return null;
+  if (typeof id === "string") return id;
+  if (typeof id === "object" && id._id) return id._id.toString();
+  return id.toString();
 }
 
 function toBengaliNumerals(num: number | string): string {
@@ -161,6 +177,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [bengaliDate, setBengaliDate] = useState("");
+  const [openMobileSubmenus, setOpenMobileSubmenus] = useState<Record<string, boolean>>({});
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -192,6 +209,31 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
   }, [isMobileOpen]);
 
   const socialEntries = Object.entries(socialLinks || {}).filter(([_, url]) => Boolean(url));
+
+  const toggleMobileSubmenu = (catId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMobileSubmenus((prev) => ({
+      ...prev,
+      [catId]: !prev[catId],
+    }));
+  };
+
+  const allCategories = categories || [];
+
+  // Main navbar categories: marked with isNavbar and has no parent or parent is not a navbar category
+  const navCategories = allCategories.filter((cat) => {
+    if (!cat.isNavbar) return false;
+    const parentIdStr = getCatId(cat.parentId);
+    if (!parentIdStr) return true;
+    const parentCat = allCategories.find((c) => getCatId(c._id) === parentIdStr);
+    return !parentCat || !parentCat.isNavbar;
+  });
+
+  // Get all subcategories belonging to a parent category
+  const getSubcategories = (parentCatId: string) => {
+    return allCategories.filter((c) => getCatId(c.parentId) === parentCatId);
+  };
 
   return (
     <header
@@ -297,24 +339,59 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
           <nav className="flex items-center justify-between gap-1 py-2">
             <Link
               href="/"
-              className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
+              className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition flex-shrink-0"
             >
               হোম
             </Link>
 
-            {categories.slice(0, 8).map((cat) => (
-              <Link
-                key={cat._id}
-                href={`/category/${cat.slug}`}
-                className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
-              >
-                {cat.name}
-              </Link>
-            ))}
+            {navCategories.map((cat) => {
+              const catIdStr = getCatId(cat._id) || cat.slug;
+              const subCats = getSubcategories(catIdStr);
+              const hasSub = subCats.length > 0;
+
+              if (!hasSub) {
+                return (
+                  <Link
+                    key={cat._id}
+                    href={`/category/${cat.slug}`}
+                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
+                  >
+                    {cat.name}
+                  </Link>
+                );
+              }
+
+              return (
+                <div key={cat._id} className="relative group">
+                  <Link
+                    href={`/category/${cat.slug}`}
+                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition inline-flex items-center gap-1.5"
+                  >
+                    <span>{cat.name}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:rotate-180 transition-transform duration-200 flex-shrink-0" />
+                  </Link>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute left-0 top-full pt-1 hidden group-hover:block group-focus-within:block z-50 min-w-[200px] shadow-xl animate-fadeIn">
+                    <div className="bg-white rounded-xl border border-gray-200 py-2 shadow-lg space-y-0.5">
+                      {subCats.map((subCat) => (
+                        <Link
+                          key={subCat._id}
+                          href={`/category/${subCat.slug}`}
+                          className="flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-primary/10 hover:text-primary transition"
+                        >
+                          <span>{subCat.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
 
             <Link
               href="/search"
-              className="px-4 py-2 font-semibold text-gray-500 hover:text-primary transition"
+              className="px-4 py-2 font-semibold text-gray-500 hover:text-primary transition flex-shrink-0"
             >
               🔍
             </Link>
@@ -334,16 +411,66 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               হোম
             </Link>
 
-            {categories.map((cat) => (
-              <Link
-                key={cat._id}
-                href={`/category/${cat.slug}`}
-                onClick={() => setIsMobileOpen(false)}
-                className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
-              >
-                {cat.name}
-              </Link>
-            ))}
+            {navCategories.map((cat) => {
+              const catIdStr = getCatId(cat._id) || cat.slug;
+              const subCats = getSubcategories(catIdStr);
+              const hasSub = subCats.length > 0;
+              const isOpen = !!openMobileSubmenus[catIdStr];
+
+              if (!hasSub) {
+                return (
+                  <Link
+                    key={cat._id}
+                    href={`/category/${cat.slug}`}
+                    onClick={() => setIsMobileOpen(false)}
+                    className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
+                  >
+                    {cat.name}
+                  </Link>
+                );
+              }
+
+              return (
+                <div key={cat._id} className="flex flex-col">
+                  <div className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md">
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      onClick={() => setIsMobileOpen(false)}
+                      className="flex-1 text-gray-700 hover:text-primary"
+                    >
+                      {cat.name}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleMobileSubmenu(catIdStr, e)}
+                      className="p-1 text-gray-500 hover:text-primary focus:outline-none"
+                    >
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-primary" : ""
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Subcategories list */}
+                  {isOpen && (
+                    <div className="ml-4 pl-3 border-l-2 border-primary/20 flex flex-col gap-1 py-1">
+                      {subCats.map((subCat) => (
+                        <Link
+                          key={subCat._id}
+                          href={`/category/${subCat.slug}`}
+                          onClick={() => setIsMobileOpen(false)}
+                          className="px-3 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-primary/5 rounded-md transition"
+                        >
+                          {subCat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             <Link
               href="/search"

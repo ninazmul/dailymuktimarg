@@ -22,7 +22,7 @@ export default async function PublicLayout({
   const [setting, navCategories, breakingNews, activeAds, pages] =
     await Promise.all([
       getSetting(),
-      Category.find({ isNavbar: true }).sort({ priority: 1, name: 1 }).lean(),
+      Category.find().sort({ priority: 1, name: 1 }).lean(),
       News.find({ breaking: true, status: "published" })
         .select("title slug")
         .sort({ publishDate: -1 })

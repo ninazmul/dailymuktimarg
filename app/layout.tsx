@@ -80,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="bn">
+    <html lang="bn" data-scroll-behavior="smooth">
       <body
         className={`${inter.variable} ${dmSerif.variable} ${solaimanLipi.variable} font-sans`}
       >

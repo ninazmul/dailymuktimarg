@@ -27,6 +27,11 @@ export type PaginatedResult<T> = {
 };
 
 // ====== NEWS PARAMS
+export type GalleryImageItem = {
+  url: string;
+  caption?: string;
+};
+
 export type NewsFormParams = {
   title: string;
   subtitle?: string;
@@ -34,7 +39,8 @@ export type NewsFormParams = {
   summary?: string;
   content?: string;
   featuredImage: string;
-  gallery?: string[];
+  imageCaption?: string;
+  gallery?: (GalleryImageItem | string)[];
   video?: string;
   categoryId: string;
   nestedCategoryId?: string;

@@ -230,20 +230,22 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* Featured Image */}
           {article.featuredImage && (
-            <div className="relative aspect-video rounded-xl overflow-hidden mb-8">
-              <Image
-                src={article.featuredImage}
-                alt={article.title}
-                fill
-                className="object-cover"
-                priority
-              />
+            <figure className="mb-8">
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm">
+                <Image
+                  src={article.featuredImage}
+                  alt={article.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
               {article.imageCaption && (
-                <p className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-2 text-center">
-                  {article.imageCaption}
-                </p>
+                <figcaption className="text-xs text-gray-500 italic mt-2 text-center bg-gray-50 py-1.5 px-3 rounded-md border border-gray-100">
+                  📷 {article.imageCaption}
+                </figcaption>
               )}
-            </div>
+            </figure>
           )}
 
           {/* Video Embed */}
@@ -271,24 +273,36 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* Image Gallery */}
           {article.gallery && article.gallery.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Photo Gallery
+            <div className="mb-8 p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>🖼️ ফটো গ্যালারি</span>
+                <span className="text-xs font-normal text-gray-500">({article.gallery.length} photos)</span>
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {article.gallery.map((imgUrl: string, idx: number) => (
-                  <div
-                    key={idx}
-                    className="relative aspect-square rounded-lg overflow-hidden"
-                  >
-                    <Image
-                      src={imgUrl}
-                      alt={`Gallery image ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {article.gallery.map((item: any, idx: number) => {
+                  const imgUrl = typeof item === "string" ? item : item?.url;
+                  const caption = typeof item === "object" ? item?.caption : "";
+                  if (!imgUrl) return null;
+
+                  return (
+                    <figure key={idx} className="flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
+                      <div className="relative aspect-video w-full">
+                        <Image
+                          src={imgUrl}
+                          alt={caption || `Gallery image ${idx + 1}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      {caption && (
+                        <figcaption className="p-2.5 text-xs text-gray-600 font-medium bg-white border-t border-gray-100">
+                          {caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                })}
               </div>
             </div>
           )}

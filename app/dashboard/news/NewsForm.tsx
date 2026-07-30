@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Sparkles, CheckCircle, AlertCircle } from "lucide-react";
+import { Image as ImageIcon, Sparkles, CheckCircle, AlertCircle, Plus, X } from "lucide-react";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import MediaLibraryModal from "@/components/shared/MediaLibrary/MediaLibraryModal";
 import {
@@ -36,6 +36,11 @@ import { generateSlug, getVideoEmbedUrl } from "@/lib/utils";
 import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 
 // Schema validation with Zod
+const galleryItemSchema = z.object({
+  url: z.string().min(1, "Image URL is required"),
+  caption: z.string().optional(),
+});
+
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   subtitle: z.string().optional(),
@@ -43,7 +48,8 @@ const formSchema = z.object({
   summary: z.string().optional(),
   content: z.string().optional(),
   featuredImage: z.string().min(1, "Featured Image is required"),
-  gallery: z.array(z.string()).default([]),
+  imageCaption: z.string().optional(),
+  gallery: z.array(galleryItemSchema).default([]),
   video: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
   nestedCategoryId: z.string().optional(),
@@ -88,10 +94,23 @@ export default function NewsForm({
 }: NewsFormProps) {
   const router = useRouter();
   const [isMediaOpen, setIsMediaOpen] = useState(false);
+  const [mediaTarget, setMediaTarget] = useState<"featured" | "gallery">("featured");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sub-categories list computed from active parent Category selection
   const [subCategories, setSubCategories] = useState<ICategory[]>([]);
+
+  const normalizeGallery = (g: any[]) => {
+    if (!Array.isArray(g)) return [];
+    return g
+      .map((item) => {
+        if (typeof item === "string") return { url: item, caption: "" };
+        if (item && typeof item === "object" && item.url)
+          return { url: item.url, caption: item.caption || "" };
+        return null;
+      })
+      .filter(Boolean) as { url: string; caption?: string }[];
+  };
 
   // Format initial values for date selectors
   const formatDateValue = (d?: Date | string) => {
@@ -123,7 +142,8 @@ export default function NewsForm({
       summary: initialData?.summary || "",
       content: initialData?.content || "",
       featuredImage: initialData?.featuredImage || "",
-      gallery: initialData?.gallery || [],
+      imageCaption: (initialData as any)?.imageCaption || "",
+      gallery: normalizeGallery(initialData?.gallery || []),
       video: initialData?.video || "",
       categoryId: initialData?.categoryId?.toString() || "",
       nestedCategoryId: initialData?.nestedCategoryId?.toString() || "",
@@ -231,6 +251,7 @@ export default function NewsForm({
   };
 
   const featuredImage = watch("featuredImage");
+  const galleryItems = watch("gallery") || [];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -359,7 +380,10 @@ export default function NewsForm({
                         </div>
                       ) : (
                         <div
-                          onClick={() => setIsMediaOpen(true)}
+                          onClick={() => {
+                            setMediaTarget("featured");
+                            setIsMediaOpen(true);
+                          }}
                           className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer bg-gray-50 hover:bg-gray-100/50 transition text-gray-500"
                         >
                           <ImageIcon className="w-10 h-10 mb-2 text-gray-400" />
@@ -373,6 +397,18 @@ export default function NewsForm({
                           {errors.featuredImage.message}
                         </p>
                       )}
+
+                      {/* Featured Image Caption */}
+                      <div className="space-y-1.5 pt-2">
+                        <Label htmlFor="featured-image-caption" className="text-xs text-gray-700">
+                          Featured Cover Image Caption (Optional)
+                        </Label>
+                        <Input
+                          id="featured-image-caption"
+                          placeholder="e.g. Photo taken during the press briefing in Dhaka"
+                          {...register("imageCaption")}
+                        />
+                      </div>
                     </div>
 
                     {/* Video Embed URL */}
@@ -405,6 +441,78 @@ export default function NewsForm({
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  {/* Photo Gallery Section */}
+                  <div className="space-y-3 pt-6 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-bold text-gray-800">Article Photo Gallery</Label>
+                        <p className="text-xs text-gray-500">Upload multiple images with individual captions to display a photo gallery in the news article.</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs font-semibold"
+                        onClick={() => {
+                          setMediaTarget("gallery");
+                          setIsMediaOpen(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Gallery Photo
+                      </Button>
+                    </div>
+
+                    {galleryItems && galleryItems.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        {galleryItems.map((item: any, idx: number) => (
+                          <div key={idx} className="flex gap-3 p-3 border rounded-lg bg-gray-50/80 items-start relative group">
+                            <div className="relative aspect-square w-16 h-16 rounded-md overflow-hidden border bg-white flex-shrink-0">
+                              <img src={item.url} alt={`Gallery ${idx + 1}`} className="object-cover w-full h-full" />
+                            </div>
+                            <div className="flex-1 space-y-1.5 min-w-0">
+                              <Label className="text-xs text-gray-600 font-semibold">Photo #{idx + 1} Caption</Label>
+                              <Input
+                                value={item.caption || ""}
+                                onChange={(e) => {
+                                  const updated = [...galleryItems];
+                                  updated[idx] = { ...updated[idx], caption: e.target.value };
+                                  setValue("gallery", updated, { shouldDirty: true });
+                                }}
+                                placeholder="Enter caption for this image..."
+                                className="text-xs h-8 bg-white"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                              onClick={() => {
+                                const updated = galleryItems.filter((_: any, i: number) => i !== idx);
+                                setValue("gallery", updated, { shouldDirty: true });
+                              }}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => {
+                          setMediaTarget("gallery");
+                          setIsMediaOpen(true);
+                        }}
+                        className="flex flex-col items-center justify-center border border-dashed rounded-lg p-5 cursor-pointer bg-gray-50 hover:bg-gray-100/60 transition text-gray-500"
+                      >
+                        <ImageIcon className="w-6 h-6 mb-1 text-gray-400" />
+                        <p className="text-xs font-semibold text-gray-600">No gallery photos added yet</p>
+                        <p className="text-[11px] text-gray-400">Click to pick and attach extra photos with captions</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -878,7 +986,16 @@ export default function NewsForm({
       <MediaLibraryModal
         open={isMediaOpen}
         onOpenChange={setIsMediaOpen}
-        onSelect={(url) => setValue("featuredImage", url)}
+        onSelect={(url) => {
+          if (mediaTarget === "gallery") {
+            const currentGallery = watch("gallery") || [];
+            setValue("gallery", [...currentGallery, { url, caption: "" }], {
+              shouldDirty: true,
+            });
+          } else {
+            setValue("featuredImage", url, { shouldDirty: true });
+          }
+        }}
       />
     </form>
   );
