@@ -72,6 +72,51 @@ export async function getPublishedPages(): Promise<IPage[]> {
   }
 }
 
+/** Returns top-level published pages with their published children nested inside. */
+export async function getPublishedPagesGrouped(): Promise<
+  { page: IPage; children: IPage[] }[]
+> {
+  try {
+    await connectToDatabase();
+    const all = await Page.find({ status: "published" })
+      .sort({ priority: 1, title: 1 })
+      .lean<IPage[]>();
+
+    const safe = safeJson(all) as IPage[];
+
+    const parents = safe.filter(
+      (p) => !p.parentId || p.parentId === null,
+    );
+    const children = safe.filter(
+      (p) => p.parentId && p.parentId !== null,
+    );
+
+    return parents.map((parent) => ({
+      page: parent,
+      children: children.filter(
+        (c) => c.parentId?.toString() === parent._id.toString(),
+      ),
+    }));
+  } catch (error) {
+    handleError(error);
+    return [];
+  }
+}
+
+/** Returns only top-level (no parent) published pages — used to populate parent dropdown. */
+export async function getTopLevelPages(): Promise<IPage[]> {
+  try {
+    await connectToDatabase();
+    const pages = await Page.find({ parentId: null })
+      .sort({ priority: -1, title: 1 })
+      .lean<IPage[]>();
+    return safeJson(pages);
+  } catch (error) {
+    handleError(error);
+    return [];
+  }
+}
+
 export async function getPage(id: string): Promise<IPage | null> {
   try {
     await connectToDatabase();
@@ -89,6 +134,7 @@ export async function createPage(params: {
   content: string;
   status: "draft" | "published";
   priority?: number;
+  parentId?: string | null;
   seo?: {
     title?: string;
     description?: string;
@@ -97,7 +143,10 @@ export async function createPage(params: {
   await requirePermission("pages", "create");
   try {
     await connectToDatabase();
-    const newPage = await Page.create(params);
+    const payload: any = { ...params };
+    // Normalize parentId: empty string or undefined → null
+    if (!payload.parentId) payload.parentId = null;
+    const newPage = await Page.create(payload);
     revalidatePath("/dashboard/pages");
     revalidatePath(`/pages/${params.slug}`);
     return safeJson(newPage);
@@ -115,6 +164,7 @@ export async function updatePage(
     content?: string;
     status?: "draft" | "published";
     priority?: number;
+    parentId?: string | null;
     seo?: {
       title?: string;
       description?: string;
@@ -124,9 +174,14 @@ export async function updatePage(
   await requirePermission("pages", "update");
   try {
     await connectToDatabase();
+    const payload: any = { ...params };
+    // Normalize parentId
+    if (payload.parentId === "" || payload.parentId === undefined) {
+      payload.parentId = null;
+    }
     const updated = await Page.findByIdAndUpdate(
       id,
-      { $set: params },
+      { $set: payload },
       { returnDocument: "after" },
     );
     if (!updated) throw new Error("Page not found");
@@ -147,6 +202,8 @@ export async function deletePage(id: string) {
     await connectToDatabase();
     const page = await Page.findById(id).lean<IPage>();
     if (!page) throw new Error("Page not found");
+    // Also delete child pages
+    await Page.deleteMany({ parentId: id });
     const deleted = await Page.findByIdAndDelete(id);
     if (!deleted) throw new Error("Page not found");
     revalidatePath("/dashboard/pages");

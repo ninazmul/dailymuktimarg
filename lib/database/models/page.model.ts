@@ -7,6 +7,7 @@ export interface IPage extends Document {
   content: string;
   status: "draft" | "published";
   priority: number;
+  parentId?: Types.ObjectId | null;
   seo?: {
     title?: string;
     description?: string;
@@ -27,6 +28,11 @@ const PageSchema = new Schema(
       required: true,
     },
     priority: { type: Number, default: 0 },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Page",
+      default: null,
+    },
     seo: {
       title: { type: String },
       description: { type: String },

@@ -1,17 +1,49 @@
-
 import { connectToDatabase } from "@/lib/database";
 import PageModel from "@/lib/database/models/page.model";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
+}
+
+async function resolvePage(slugSegments: string[]) {
+  await connectToDatabase();
+
+  if (slugSegments.length === 1) {
+    // Top-level page: /pages/about
+    return PageModel.findOne({
+      slug: slugSegments[0],
+      parentId: null,
+      status: "published",
+    }).lean<any>();
+  }
+
+  if (slugSegments.length === 2) {
+    // Sub-page: /pages/about/overview
+    const [parentSlug, childSlug] = slugSegments;
+
+    // Find parent first
+    const parent = await PageModel.findOne({
+      slug: parentSlug,
+      parentId: null,
+    }).lean<any>();
+
+    if (!parent) return null;
+
+    return PageModel.findOne({
+      slug: childSlug,
+      parentId: parent._id,
+      status: "published",
+    }).lean<any>();
+  }
+
+  return null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  await connectToDatabase();
-  const pageDoc = await PageModel.findOne({ slug, status: "published" }).lean<any>();
+  const pageDoc = await resolvePage(slug);
   if (!pageDoc) return { title: "Page Not Found" };
   return {
     title: pageDoc.seo?.title || `${pageDoc.title} | Daily Muktimarg`,
@@ -19,11 +51,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function StaticPage({ params }: PageProps) {
+export default async function DynamicPage({ params }: PageProps) {
   const { slug } = await params;
-  await connectToDatabase();
-
-  const pageDoc = await PageModel.findOne({ slug, status: "published" }).lean<any>();
+  const pageDoc = await resolvePage(slug);
   if (!pageDoc) notFound();
 
   return (

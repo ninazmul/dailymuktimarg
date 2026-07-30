@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,15 +13,16 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  EyeOff,
+  ChevronDown,
   Sparkles,
+  FolderTree,
 } from "lucide-react";
 import {
   createPage,
   updatePage,
   deletePage,
   getPages,
+  getTopLevelPages,
 } from "@/lib/actions/page.actions";
 import { IPage } from "@/lib/database/models/page.model";
 import { toast } from "react-hot-toast";
@@ -60,12 +61,16 @@ export default function PagesClient({
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Top-level pages for the parent dropdown
+  const [topLevelPages, setTopLevelPages] = useState<IPage[]>([]);
+
   // Form fields
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("published");
   const [priority, setPriority] = useState(0);
+  const [parentId, setParentId] = useState<string>("none");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,12 +81,18 @@ export default function PagesClient({
   const canEditForm = isEditing ? canUpdate : canCreate;
   const canMutate = canUpdate || canDelete;
 
+  // Load top-level pages for the parent dropdown
+  useEffect(() => {
+    getTopLevelPages().then((pages) => setTopLevelPages(pages));
+  }, [result]); // reload when result changes (e.g. a new page was created)
+
   const resetForm = () => {
     setTitle("");
     setSlug("");
     setContent("");
     setStatus("published");
     setPriority(0);
+    setParentId("none");
     setSeoTitle("");
     setSeoDescription("");
     setIsEditing(false);
@@ -96,6 +107,7 @@ export default function PagesClient({
     setContent(page.content);
     setStatus(page.status);
     setPriority(page.priority || 0);
+    setParentId(page.parentId ? page.parentId.toString() : "none");
     setSeoTitle(page.seo?.title || "");
     setSeoDescription(page.seo?.description || "");
   };
@@ -117,7 +129,6 @@ export default function PagesClient({
     const val = e.target.value;
     setSearch(val);
 
-    // Update URL query parameters
     const params = new URLSearchParams(searchParams.toString());
     if (val) {
       params.set("search", val);
@@ -145,6 +156,19 @@ export default function PagesClient({
     }
   };
 
+  /** Build the URL preview string shown in the list */
+  const buildPageUrl = (page: IPage) => {
+    if (page.parentId) {
+      const parent = topLevelPages.find(
+        (p) => p._id.toString() === page.parentId?.toString(),
+      );
+      return parent
+        ? `/pages/${parent.slug}/${page.slug}`
+        : `/pages/[parent]/${page.slug}`;
+    }
+    return `/pages/${page.slug}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !slug.trim() || !content.trim()) {
@@ -160,6 +184,7 @@ export default function PagesClient({
         content,
         status,
         priority,
+        parentId: parentId === "none" ? null : parentId,
         seo: {
           title: seoTitle.trim() || undefined,
           description: seoDescription.trim() || undefined,
@@ -183,7 +208,15 @@ export default function PagesClient({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this page?")) return;
+    const page = result.pages.find((p) => p._id.toString() === id);
+    const hasChildren = result.pages.some(
+      (p) => p.parentId?.toString() === id,
+    );
+    const confirmMsg = hasChildren
+      ? "This page has sub-pages. Deleting it will also delete all sub-pages. Continue?"
+      : "Are you sure you want to delete this page?";
+
+    if (!confirm(confirmMsg)) return;
     try {
       await deletePage(id);
       toast.success("Page deleted.");
@@ -193,6 +226,30 @@ export default function PagesClient({
       toast.error(error.message || "Failed to delete page.");
     }
   };
+
+  // Group pages for display: parents first, then their children indented
+  const groupedDisplay = (() => {
+    const parents = result.pages.filter((p) => !p.parentId);
+    const children = result.pages.filter((p) => !!p.parentId);
+    const items: { page: IPage; isChild: boolean }[] = [];
+    for (const parent of parents) {
+      items.push({ page: parent, isChild: false });
+      const subs = children.filter(
+        (c) => c.parentId?.toString() === parent._id.toString(),
+      );
+      for (const child of subs) {
+        items.push({ page: child, isChild: true });
+      }
+    }
+    // Any orphaned children (parent not visible in current page)
+    const listedParentIds = new Set(parents.map((p) => p._id.toString()));
+    for (const child of children) {
+      if (!listedParentIds.has(child.parentId?.toString() ?? "")) {
+        items.push({ page: child, isChild: true });
+      }
+    }
+    return items;
+  })();
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -214,20 +271,30 @@ export default function PagesClient({
           </div>
         </div>
 
-        {result.pages.length === 0 ? (
+        {groupedDisplay.length === 0 ? (
           <div className="text-center p-8 border border-dashed rounded-xl text-gray-500">
             No pages found. Add pages using the form on the right.
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="grid grid-cols-1 gap-3">
-              {result.pages.map((page) => (
+            <div className="grid grid-cols-1 gap-2">
+              {groupedDisplay.map(({ page, isChild }) => (
                 <div
                   key={page._id.toString()}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-gray-50 hover:bg-gray-100 transition"
+                  className={`flex items-center justify-between p-4 rounded-lg border transition ${
+                    isChild
+                      ? "ml-6 bg-blue-50 border-blue-100 hover:bg-blue-100"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
                 >
                   <div className="flex flex-col flex-1">
                     <div className="flex items-center gap-2">
+                      {isChild && (
+                        <ChevronDown className="w-3.5 h-3.5 text-blue-400 rotate-[-90deg]" />
+                      )}
+                      {!isChild && (
+                        <FolderTree className="w-3.5 h-3.5 text-gray-400" />
+                      )}
                       <span className="font-mono font-bold text-sm text-gray-500 min-w-[24px] text-center">
                         {page.priority || 0}
                       </span>
@@ -244,8 +311,8 @@ export default function PagesClient({
                         {page.status}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      /pages/{page.slug}
+                    <span className="text-xs text-gray-500 mt-0.5 ml-7">
+                      {buildPageUrl(page)}
                     </span>
                   </div>
                   {canMutate && (
@@ -329,6 +396,37 @@ export default function PagesClient({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Parent Page */}
+            <div className="space-y-1.5">
+              <Label htmlFor="page-parent">Parent Page</Label>
+              <Select
+                value={parentId}
+                onValueChange={(v) => setParentId(v)}
+              >
+                <SelectTrigger id="page-parent">
+                  <SelectValue placeholder="None (top-level page)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None (top-level page)</SelectItem>
+                  {topLevelPages
+                    .filter((p) => !isEditing || p._id.toString() !== editingId)
+                    .map((p) => (
+                      <SelectItem key={p._id.toString()} value={p._id.toString()}>
+                        {p.title} ({p.slug})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                {parentId !== "none"
+                  ? `URL: /pages/${
+                      topLevelPages.find((p) => p._id.toString() === parentId)
+                        ?.slug ?? "parent"
+                    }/${slug || "slug"}`
+                  : `URL: /pages/${slug || "slug"}`}
+              </p>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="page-title">Title *</Label>
               <Input

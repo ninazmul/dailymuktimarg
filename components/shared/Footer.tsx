@@ -1,13 +1,20 @@
 import Link from "next/link";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, ChevronDown } from "lucide-react";
 import Image from "next/image";
+
+interface PageItem {
+  _id: string;
+  title: string;
+  slug: string;
+  parentId?: string | null;
+}
 
 interface FooterProps {
   contactEmail?: string;
   phoneNumber?: string;
   address?: string;
   socialLinks: Record<string, string>;
-  pages?: { _id: string; title: string; slug: string }[];
+  pages?: PageItem[];
 }
 
 export default function Footer({
@@ -17,6 +24,17 @@ export default function Footer({
   socialLinks,
   pages = [],
 }: FooterProps) {
+  // Group into parents and their children
+  const parents = pages.filter((p) => !p.parentId);
+  const children = pages.filter((p) => !!p.parentId);
+
+  const grouped = parents.map((parent) => ({
+    parent,
+    children: children.filter(
+      (c) => c.parentId?.toString() === parent._id.toString(),
+    ),
+  }));
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 py-12">
@@ -124,16 +142,63 @@ export default function Footer({
                   Search
                 </Link>
               </li>
-              {pages.map((page) => (
-                <li key={page._id}>
-                  <Link
-                    href={`/pages/${page.slug}`}
-                    className="hover:text-white transition"
-                  >
-                    {page.title}
-                  </Link>
-                </li>
-              ))}
+
+              {grouped.map(({ parent, children }) =>
+                children.length === 0 ? (
+                  // No children — plain link
+                  <li key={parent._id}>
+                    <Link
+                      href={`/pages/${parent.slug}`}
+                      className="hover:text-white transition"
+                    >
+                      {parent.title}
+                    </Link>
+                  </li>
+                ) : (
+                  // Has children — group with dropdown
+                  <li key={parent._id} className="group relative">
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`/pages/${parent.slug}`}
+                        className="hover:text-white transition"
+                      >
+                        {parent.title}
+                      </Link>
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-transform group-hover:rotate-180 duration-200" />
+                    </div>
+                    {/* Sub-page dropdown */}
+                    <ul className="mt-1 ml-3 space-y-1 border-l border-gray-700 pl-3 hidden group-hover:block">
+                      {children.map((child) => (
+                        <li key={child._id}>
+                          <Link
+                            href={`/pages/${parent.slug}/${child.slug}`}
+                            className="text-gray-400 hover:text-white transition text-xs"
+                          >
+                            {child.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ),
+              )}
+
+              {/* Orphaned children (whose parent is not published) */}
+              {children
+                .filter(
+                  (c) =>
+                    !parents.some((p) => p._id.toString() === c.parentId?.toString()),
+                )
+                .map((orphan) => (
+                  <li key={orphan._id}>
+                    <Link
+                      href={`/pages/${orphan.slug}`}
+                      className="hover:text-white transition"
+                    >
+                      {orphan.title}
+                    </Link>
+                  </li>
+                ))}
             </ul>
           </div>
 
