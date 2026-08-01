@@ -2,6 +2,7 @@ import { connectToDatabase } from "@/lib/database";
 import PageModel from "@/lib/database/models/page.model";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PageSectionRenderer } from "@/components/shared/PageSectionRenderer";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -57,14 +58,16 @@ export default async function DynamicPage({ params }: PageProps) {
   if (!pageDoc) notFound();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-black text-gray-900 leading-tight mb-6 pb-4 border-b">
+    <div className="max-w-5xl mx-auto px-4 py-12">
+      <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
         {pageDoc.title}
       </h1>
-      <article
-        className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-primary"
-        dangerouslySetInnerHTML={{ __html: pageDoc.content }}
+
+      <PageSectionRenderer
+        sections={pageDoc.sections}
+        fallbackContent={pageDoc.content}
       />
     </div>
   );
 }
+

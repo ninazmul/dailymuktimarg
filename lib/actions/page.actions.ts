@@ -1,7 +1,7 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/database";
-import Page, { IPage } from "@/lib/database/models/page.model";
+import Page, { IPage, IPageSection } from "@/lib/database/models/page.model";
 import { requirePermission } from "@/lib/auth/rbac";
 import { safeJson, handleError } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
@@ -135,6 +135,7 @@ export async function createPage(params: {
   status: "draft" | "published";
   priority?: number;
   parentId?: string | null;
+  sections?: IPageSection[];
   seo?: {
     title?: string;
     description?: string;
@@ -165,6 +166,7 @@ export async function updatePage(
     status?: "draft" | "published";
     priority?: number;
     parentId?: string | null;
+    sections?: IPageSection[];
     seo?: {
       title?: string;
       description?: string;

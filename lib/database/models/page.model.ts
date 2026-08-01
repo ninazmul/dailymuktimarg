@@ -1,5 +1,61 @@
 import { Document, Schema, Types, model, models } from "mongoose";
 
+export interface IPageFounder {
+  name: string;
+  role: string;
+  image?: string;
+  bio?: string;
+  linkedin?: string;
+  twitter?: string;
+  facebook?: string;
+  email?: string;
+}
+
+export interface IPageFeatureCard {
+  title: string;
+  description: string;
+  icon?: string;
+  image?: string;
+  linkUrl?: string;
+  linkText?: string;
+}
+
+export interface IPageSection {
+  id: string;
+  type: "richText" | "founders" | "imageBanner" | "featureCards" | "cta" | "faq" | "embed";
+  enabled: boolean;
+  order: number;
+  title?: string;
+  subtitle?: string;
+  backgroundColor?: string;
+  content?: string;
+  founders?: IPageFounder[];
+  imageBanner?: {
+    imageUrl: string;
+    alt?: string;
+    caption?: string;
+    layout?: "full" | "contained" | "split-left" | "split-right";
+    linkUrl?: string;
+    linkText?: string;
+  };
+  featureCards?: IPageFeatureCard[];
+  cta?: {
+    heading: string;
+    subheading?: string;
+    buttonText: string;
+    buttonUrl: string;
+    style?: "primary" | "secondary" | "dark";
+  };
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+  embed?: {
+    code: string;
+    caption?: string;
+  };
+}
+
 export interface IPage extends Document {
   _id: Types.ObjectId;
   title: string;
@@ -8,6 +64,7 @@ export interface IPage extends Document {
   status: "draft" | "published";
   priority: number;
   parentId?: Types.ObjectId | null;
+  sections?: IPageSection[];
   seo?: {
     title?: string;
     description?: string;
@@ -33,6 +90,7 @@ const PageSchema = new Schema(
       ref: "Page",
       default: null,
     },
+    sections: { type: Array, default: [] },
     seo: {
       title: { type: String },
       description: { type: String },
@@ -44,3 +102,4 @@ const PageSchema = new Schema(
 const Page = models.Page || model("Page", PageSchema);
 
 export default Page;
+
