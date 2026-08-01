@@ -237,17 +237,30 @@ export default function Footer({
       </div>
 
       <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-4 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()}{" "}
-          <a
-            href="/dashboard"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition"
-          >
-            Daily Muktimarg
-          </a>
-          . All rights reserved.
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+          <div>
+            © {new Date().getFullYear()}{" "}
+            <a
+              href="/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition"
+            >
+              Daily Muktimarg
+            </a>
+            . All rights reserved.
+          </div>
+          <div>
+            Design & Development By{" "}
+            <a
+              href="https://www.it.sacreativem.com.bd/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition font-medium"
+            >
+              SA Creative Media
+            </a>
+          </div>
         </div>
       </div>
     </footer>
