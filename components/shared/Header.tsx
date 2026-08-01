@@ -334,9 +334,9 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:block border-t border-gray-100">
+      <div className="hidden md:block border-t border-gray-100 overflow-x-auto scrollbar-none">
         <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex items-center justify-between gap-1 py-2">
+          <nav className="flex items-center justify-between gap-1 py-2 whitespace-nowrap min-w-max">
             <Link
               href="/"
               className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition flex-shrink-0"

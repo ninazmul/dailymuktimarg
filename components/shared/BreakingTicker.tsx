@@ -18,7 +18,7 @@ export default function BreakingTicker({ items }: BreakingTickerProps) {
           <Zap className="w-4 h-4 animate-pulse" />
           <span className="text-xs font-bold uppercase tracking-wider">Breaking</span>
         </div>
-        <div className="overflow-hidden flex-1 relative">
+        <div className="overflow-hidden flex-1 min-w-0 relative">
           <div ref={scrollRef} className="flex gap-12 animate-marquee whitespace-nowrap">
             {items.concat(items).map((item, idx) => (
               <Link

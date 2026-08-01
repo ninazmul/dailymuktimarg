@@ -51,7 +51,7 @@ export default async function PublicLayout({
   const seo = setting?.seo || {};
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 max-w-full overflow-x-hidden">
       {/* Google Analytics */}
       {seo.googleAnalyticsId && (
         <>

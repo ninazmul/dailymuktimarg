@@ -141,7 +141,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
         </div>
       ) : layout === "slider" ? (
         /* Slider / Horizontal Scroll Carousel Layout */
-        <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-200">
+        <div className="flex gap-4 overflow-x-auto max-w-full pb-4 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-200">
           {articles.map((article) => (
             <Link
               key={article._id}

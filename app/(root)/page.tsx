@@ -210,10 +210,10 @@ export default async function HomePage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 w-full overflow-hidden">
+      <div className="flex flex-col lg:flex-row gap-8 min-w-0">
         {/* Main Content */}
-        <div className="flex-1 space-y-8">
+        <div className="flex-1 min-w-0 space-y-8">
           {/* Lead Stories Hero */}
           {safeLeads.length > 0 && (
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
