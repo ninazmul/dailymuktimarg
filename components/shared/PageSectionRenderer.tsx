@@ -140,87 +140,96 @@ function FoundersSection({ founders }: { founders: IPageSection["founders"] }) {
       {founders.map((founder, idx) => (
         <div
           key={idx}
-          className="group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col items-center text-center overflow-hidden"
+          className="group relative bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden"
         >
-          {/* Top Decorative Header bar */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-emerald-600 to-emerald-800" />
+          <div>
+            {/* Portrait Image Container */}
+            <div className="relative w-full h-72 md:h-80 rounded-2xl overflow-hidden shadow-md bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 mb-4">
+              {founder.image ? (
+                <Image
+                  src={founder.image}
+                  alt={founder.name}
+                  fill
+                  className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+                  <User className="w-20 h-20 stroke-[1.5]" />
+                </div>
+              )}
 
-          {/* Photo */}
-          <div className="relative w-28 h-28 md:w-32 md:h-32 mb-4 mt-2 rounded-full overflow-hidden ring-4 ring-primary/20 dark:ring-primary/40 shadow-md transition-transform duration-300 group-hover:scale-105">
-            {founder.image ? (
-              <Image
-                src={founder.image}
-                alt={founder.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-tr from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center text-gray-400">
-                <User className="w-12 h-12" />
+              {/* Bottom Gradient Overlay for High Contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+              {/* Name & Role overlay on image bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-left text-white space-y-1">
+                <span className="inline-block px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-primary text-white rounded-full shadow-sm">
+                  {founder.role || "Founder & Team"}
+                </span>
+                <h3 className="text-xl md:text-2xl font-black tracking-tight drop-shadow-sm">
+                  {founder.name}
+                </h3>
               </div>
+            </div>
+
+            {/* Bio Description */}
+            {founder.bio && (
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4 px-1">
+                {founder.bio}
+              </p>
             )}
           </div>
 
-          {/* Name & Role */}
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors">
-            {founder.name}
-          </h3>
-          <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary dark:text-emerald-400 bg-primary/10 dark:bg-primary/20 rounded-full mb-3">
-            {founder.role}
-          </span>
-
-          {/* Bio */}
-          {founder.bio && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-5 flex-1">
-              {founder.bio}
-            </p>
-          )}
-
-          {/* Social Links */}
-          <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 w-full mt-auto">
-            {founder.linkedin && (
-              <a
-                href={founder.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-colors"
-                title="LinkedIn"
-              >
-                <LinkedinIcon className="w-4 h-4" />
-              </a>
-            )}
-            {founder.twitter && (
-              <a
-                href={founder.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-gray-500 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-full transition-colors"
-                title="Twitter / X"
-              >
-                <TwitterIcon className="w-4 h-4" />
-              </a>
-            )}
-            {founder.facebook && (
-              <a
-                href={founder.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-gray-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-colors"
-                title="Facebook"
-              >
-                <FacebookIcon className="w-4 h-4" />
-              </a>
-            )}
-            {founder.email && (
-              <a
-                href={`mailto:${founder.email}`}
-                className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full transition-colors"
-                title="Email"
-              >
-                <Mail className="w-4 h-4" />
-              </a>
-            )}
+          {/* Social Links Bar */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800 w-full mt-auto px-1">
+            <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              Connect
+            </span>
+            <div className="flex items-center gap-1.5">
+              {founder.linkedin && (
+                <a
+                  href={founder.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-colors"
+                  title="LinkedIn"
+                >
+                  <LinkedinIcon className="w-4 h-4" />
+                </a>
+              )}
+              {founder.twitter && (
+                <a
+                  href={founder.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-500 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-full transition-colors"
+                  title="Twitter / X"
+                >
+                  <TwitterIcon className="w-4 h-4" />
+                </a>
+              )}
+              {founder.facebook && (
+                <a
+                  href={founder.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-colors"
+                  title="Facebook"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                </a>
+              )}
+              {founder.email && (
+                <a
+                  href={`mailto:${founder.email}`}
+                  className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full transition-colors"
+                  title="Email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
       ))}
