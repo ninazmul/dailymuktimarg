@@ -36,7 +36,6 @@ export interface INews extends Document {
   featured: boolean;
   trending: boolean;
   breaking: boolean;
-  headline?: string; // e.g. "Top Headlines"
   lead: boolean;
   leadPosition?: number; // 1 to 12
   relatedNews: Types.ObjectId[]; // References News
@@ -91,7 +90,6 @@ const NewsSchema = new Schema(
     featured: { type: Boolean, default: false },
     trending: { type: Boolean, default: false },
     breaking: { type: Boolean, default: false },
-    headline: { type: String, default: null },
     lead: { type: Boolean, default: false },
     leadPosition: { type: Number, default: null },
     relatedNews: [{ type: Schema.Types.ObjectId, ref: "News" }],
@@ -106,7 +104,6 @@ NewsSchema.index({ tags: 1, status: 1 });
 NewsSchema.index({ views: -1, status: 1 });
 NewsSchema.index({ breaking: 1, status: 1, publishDate: -1 });
 NewsSchema.index({ lead: 1, leadPosition: 1, status: 1 });
-NewsSchema.index({ headline: 1, status: 1, publishDate: -1 });
 NewsSchema.index({ status: 1, updatedAt: -1 });
 NewsSchema.index({ lead: 1, leadPosition: 1 });
 NewsSchema.index({ featured: 1, status: 1 });

@@ -16,7 +16,7 @@ import { Sparkles, TrendingUp, Zap } from "lucide-react";
 export const revalidate = 60;
 
 const ARTICLE_CARD_FIELDS =
-  "title slug summary featuredImage categoryId publishDate views leadPosition gallery video headline featured trending breaking";
+  "title slug summary featuredImage categoryId publishDate views leadPosition gallery video featured trending breaking";
 
 export default async function HomePage() {
   await connectToDatabase();
@@ -45,17 +45,6 @@ export default async function HomePage() {
     .populate("categoryId", "name slug")
     .sort({ leadPosition: 1 })
     .limit(12)
-    .lean();
-
-  // Fetch published articles assigned to Headline Groups (Top Headlines, Editor's Pick, etc.)
-  const headlineGroupArticles = await News.find({
-    status: "published",
-    headline: { $ne: null, $nin: ["none", ""] },
-  })
-    .select(ARTICLE_CARD_FIELDS)
-    .populate("categoryId", "name slug")
-    .sort({ publishDate: -1 })
-    .limit(9)
     .lean();
 
   // Fetch Editor's Featured Pick articles
@@ -90,8 +79,8 @@ export default async function HomePage() {
         if (section.filters.featured) query.featured = true;
         if (section.filters.trending) query.trending = true;
         if (section.filters.breaking) query.breaking = true;
-        if (section.filters.hasVideo) query.video = { $ne: null };
-        if (section.filters.headline) query.headline = section.filters.headline;
+        if (section.filters.hasVideo)
+          query.video = { $exists: true, $nin: [null, ""] };
       }
 
       if (section.sectionType === "lead" || section.sectionType === "hero") {
@@ -150,7 +139,7 @@ export default async function HomePage() {
       }
 
       if (section.sectionType === "videoGallery") {
-        query.video = { $ne: null };
+        query.video = { $exists: true, $nin: [null, ""] };
         const articles = await News.find(query)
           .select(ARTICLE_CARD_FIELDS)
           .populate("categoryId", "name slug")
@@ -196,7 +185,6 @@ export default async function HomePage() {
   );
 
   const safeLeads = JSON.parse(JSON.stringify(leadArticles));
-  const safeHeadlineArticles = JSON.parse(JSON.stringify(headlineGroupArticles));
   const safeFeaturedArticles = JSON.parse(JSON.stringify(featuredArticles));
   const safeTrendingArticles = JSON.parse(JSON.stringify(trendingArticles));
   const activePoll = await getActivePoll();
@@ -239,11 +227,6 @@ export default async function HomePage() {
                             {safeLeads[0].categoryId.name}
                           </span>
                         )}
-                        {safeLeads[0].headline && safeLeads[0].headline !== "none" && (
-                          <span className="text-xs font-bold bg-amber-500 text-white px-2 py-1 rounded inline-block">
-                            {safeLeads[0].headline}
-                          </span>
-                        )}
                       </div>
                       <h2 className="text-2xl md:text-3xl font-black text-white leading-tight group-hover:underline line-clamp-2">
                         {safeLeads[0].title}
@@ -274,11 +257,6 @@ export default async function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      {article.headline && article.headline !== "none" && (
-                        <span className="text-[10px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded mb-1 inline-block">
-                          {article.headline}
-                        </span>
-                      )}
                       <h3 className="text-base font-bold text-white leading-snug group-hover:underline line-clamp-2">
                         {article.title}
                       </h3>
@@ -316,11 +294,6 @@ export default async function HomePage() {
                       {article.categoryId?.name && (
                         <span className="text-[10px] font-bold text-primary uppercase">
                           {article.categoryId.name}
-                        </span>
-                      )}
-                      {article.headline && article.headline !== "none" && (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
-                          {article.headline}
                         </span>
                       )}
                     </div>
@@ -409,52 +382,6 @@ export default async function HomePage() {
                         <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
                           <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
                             Trending
-                          </span>
-                          {article.categoryId?.name && (
-                            <span className="text-[10px] font-bold text-gray-500 uppercase">
-                              {article.categoryId.name}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
-                          {article.title}
-                        </h3>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Headline Groups Highlights */}
-          {safeHeadlineArticles.length > 0 && (
-            <section className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 rounded-xl p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-black text-gray-900 border-l-4 border-amber-500 pl-3">
-                  Top Headline Groups
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {safeHeadlineArticles.map((article: any) => (
-                  <Link
-                    key={article._id}
-                    href={`/news/${article.slug}`}
-                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="relative aspect-video">
-                        <Image
-                          src={article.featuredImage}
-                          alt={article.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                          <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded">
-                            {article.headline}
                           </span>
                           {article.categoryId?.name && (
                             <span className="text-[10px] font-bold text-gray-500 uppercase">

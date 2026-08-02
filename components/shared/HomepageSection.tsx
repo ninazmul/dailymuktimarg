@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Play, Image as ImageIcon, ChevronRight } from "lucide-react";
+import { getVideoEmbedUrl } from "@/lib/utils";
 
 interface HomepageSectionProps {
   section: {
@@ -20,7 +21,6 @@ interface HomepageSectionProps {
     summary?: string;
     publishDate?: string;
     categoryId?: { name: string; slug: string };
-    headline?: string;
     featured?: boolean;
     trending?: boolean;
     breaking?: boolean;
@@ -29,12 +29,57 @@ interface HomepageSectionProps {
   }[];
 }
 
-export default function HomepageSection({ section, articles }: HomepageSectionProps) {
+export default function HomepageSection({
+  section,
+  articles,
+}: HomepageSectionProps) {
   if (!articles || articles.length === 0) return null;
 
   const categorySlug = section.categoryId?.slug;
   const displayTitle = section.customTitle || section.sectionName;
   const layout = section.layoutType || "grid";
+  const isVideoGallery = section.sectionType === "videoGallery";
+
+  // Video Preview Component for videoGallery sections
+  const VideoPreview = ({
+    article,
+    className = "",
+  }: {
+    article: any;
+    className?: string;
+  }) => {
+    const embedUrl = article.video ? getVideoEmbedUrl(article.video) : null;
+    if (isVideoGallery && embedUrl) {
+      return (
+        <div className={`relative w-full h-full ${className}`}>
+          <iframe
+            src={embedUrl}
+            title={article.title}
+            className="absolute inset-0 w-full h-full"
+            loading="lazy"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+    // Fallback to image with play icon for non-videoGallery sections or invalid embed URLs
+    return (
+      <div className={`relative w-full h-full ${className}`}>
+        <Image
+          src={article.featuredImage}
+          alt={article.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {article.video && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center pointer-events-none">
+            <Play className="w-6 h-6 md:w-8 md:h-8 text-white fill-white" />
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Card Badges Helper Component
   const ArticleBadges = ({ article }: { article: any }) => (
@@ -42,11 +87,6 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
       {article.categoryId?.name && (
         <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
           {article.categoryId.name}
-        </span>
-      )}
-      {article.headline && article.headline !== "none" && (
-        <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
-          {article.headline}
         </span>
       )}
       {article.featured && (
@@ -66,7 +106,8 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
       )}
       {article.gallery && article.gallery.length > 0 && (
         <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded flex items-center gap-1">
-          <ImageIcon className="w-2.5 h-2.5" /> Gallery ({article.gallery.length})
+          <ImageIcon className="w-2.5 h-2.5" /> Gallery (
+          {article.gallery.length})
         </span>
       )}
     </div>
@@ -77,7 +118,11 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
       className={`rounded-2xl transition-all ${
         section.backgroundColor ? "p-5 border border-gray-200/80 shadow-sm" : ""
       }`}
-      style={section.backgroundColor ? { backgroundColor: section.backgroundColor } : {}}
+      style={
+        section.backgroundColor
+          ? { backgroundColor: section.backgroundColor }
+          : {}
+      }
     >
       {/* Header Bar */}
       <div className="flex items-center justify-between mb-4">
@@ -106,17 +151,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
               className="group flex gap-4 bg-white rounded-xl border p-3 hover:shadow-md transition"
             >
               <div className="relative w-32 h-24 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                <Image
-                  src={article.featuredImage}
-                  alt={article.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {article.video && (
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white fill-white" />
-                  </div>
-                )}
+                <VideoPreview article={article} />
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-between">
                 <div>
@@ -150,17 +185,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
             >
               <div>
                 <div className="relative aspect-video bg-gray-100">
-                  <Image
-                    src={article.featuredImage}
-                    alt={article.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {article.video && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-white fill-white" />
-                    </div>
-                  )}
+                  <VideoPreview article={article} />
                 </div>
                 <div className="p-4">
                   <ArticleBadges article={article} />
@@ -183,17 +208,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
                 className="group block bg-white rounded-xl border overflow-hidden hover:shadow-md transition h-full flex flex-col"
               >
                 <div className="relative aspect-[16/9] bg-gray-100 w-full">
-                  <Image
-                    src={articles[0].featuredImage}
-                    alt={articles[0].title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {articles[0].video && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <Play className="w-10 h-10 text-white fill-white" />
-                    </div>
-                  )}
+                  <VideoPreview article={articles[0]} />
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
@@ -221,12 +236,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
                 className="group flex gap-3 bg-white rounded-xl border p-2.5 hover:shadow-sm transition"
               >
                 <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                  <Image
-                    src={article.featuredImage}
-                    alt={article.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <VideoPreview article={article} />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <ArticleBadges article={article} />
@@ -249,17 +259,7 @@ export default function HomepageSection({ section, articles }: HomepageSectionPr
             >
               <div>
                 <div className="relative aspect-video bg-gray-100">
-                  <Image
-                    src={article.featuredImage}
-                    alt={article.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {article.video && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-white fill-white" />
-                    </div>
-                  )}
+                  <VideoPreview article={article} />
                 </div>
                 <div className="p-4">
                   <ArticleBadges article={article} />

@@ -59,7 +59,6 @@ export type NewsFormParams = {
   featured?: boolean;
   trending?: boolean;
   breaking?: boolean;
-  headline?: string;
   lead?: boolean;
   leadPosition?: number;
   relatedNews?: string[];

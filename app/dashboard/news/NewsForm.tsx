@@ -75,7 +75,6 @@ const formSchema = z.object({
   featured: z.boolean().default(false),
   trending: z.boolean().default(false),
   breaking: z.boolean().default(false),
-  headline: z.string().optional(),
   lead: z.boolean().default(false),
   leadPosition: z.number().optional(),
 });
@@ -173,7 +172,6 @@ export default function NewsForm({
       featured: initialData?.featured || false,
       trending: initialData?.trending || false,
       breaking: initialData?.breaking || false,
-      headline: initialData?.headline || "",
       lead: initialData?.lead || false,
       leadPosition: initialData?.leadPosition || undefined,
     },
@@ -886,36 +884,6 @@ export default function NewsForm({
                 <Label htmlFor="check-featured" className="cursor-pointer">
                   Editor's Featured Pick
                 </Label>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="select-headline-group">Headline Group</Label>
-                <Controller
-                  name="headline"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="None" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="Top Headlines">
-                          Top Headlines
-                        </SelectItem>
-                        <SelectItem value="Editor's Pick">
-                          Editor's Pick
-                        </SelectItem>
-                        <SelectItem value="Important News">
-                          Important News
-                        </SelectItem>
-                        <SelectItem value="Latest Headlines">
-                          Latest Headlines
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
               </div>
 
               {/* Lead Placement Pos */}

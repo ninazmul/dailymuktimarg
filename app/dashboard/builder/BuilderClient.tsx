@@ -45,7 +45,6 @@ import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 
 const SECTION_TYPES = [
   { value: "categoryGrid", label: "Category News Block" },
-  { value: "lead", label: "Lead Stories Block" },
   { value: "featured", label: "Featured Picks Block" },
   { value: "trending", label: "Trending News Block" },
   { value: "breaking", label: "Breaking News Block" },
