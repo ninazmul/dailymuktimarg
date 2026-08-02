@@ -342,7 +342,8 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
       }`}
     >
       {/* Top Logo Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 relative z-20">
+
         <Link href="/" className="flex items-center flex-shrink-0">
           <Image
             src="/assets/images/logo.png"
@@ -438,8 +439,8 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
         </button>
       </div>
 
-      {/* Desktop Navigation - ALWAYS VISIBLE sticky menubar */}
-      <div className="hidden md:block border-t-2 border-b border-primary/30 bg-gradient-to-r from-white via-primary/5 to-white sticky top-0 z-[100] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.2)]">
+      {/* Desktop Navigation - ALWAYS VISIBLE menubar */}
+      <div className="hidden md:block border-t-2 border-b border-primary/30 bg-gradient-to-r from-white via-primary/5 to-white relative z-10 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.2)]">
         <div className="max-w-7xl mx-auto px-4">
           <nav className="flex flex-wrap items-center gap-2 py-2.5">
             {/* ============ SEARCH BUTTON (LEFT SIDE) links to /search ============ */}

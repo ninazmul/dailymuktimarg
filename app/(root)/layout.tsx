@@ -8,6 +8,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import BreakingTicker from "@/components/shared/BreakingTicker";
 import Ad from "@/components/shared/Ad";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 import Script from "next/script";
 
 export const revalidate = 120;
@@ -107,6 +108,8 @@ export default async function PublicLayout({
       {mobileAds.map((ad) => (
         <Ad key={ad._id.toString()} ad={ad} />
       ))}
+
+      <ScrollToTop />
 
       {/* Footer Script */}
       {setting?.footerScript && (
