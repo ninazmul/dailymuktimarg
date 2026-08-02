@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Sparkles, CheckCircle, AlertCircle, Plus, X } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Sparkles,
+  CheckCircle,
+  AlertCircle,
+  Plus,
+  X,
+} from "lucide-react";
 import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import MediaLibraryModal from "@/components/shared/MediaLibrary/MediaLibraryModal";
 import {
@@ -94,7 +101,9 @@ export default function NewsForm({
 }: NewsFormProps) {
   const router = useRouter();
   const [isMediaOpen, setIsMediaOpen] = useState(false);
-  const [mediaTarget, setMediaTarget] = useState<"featured" | "gallery">("featured");
+  const [mediaTarget, setMediaTarget] = useState<"featured" | "gallery">(
+    "featured",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sub-categories list computed from active parent Category selection
@@ -211,16 +220,12 @@ export default function NewsForm({
             .filter(Boolean)
         : [];
 
-      // Cast date inputs back to actual ISO date formats
+      // Cast date inputs back to actual ISO date formats - exclude publishDate and schedulePublish as they are auto-managed
       const payload: any = {
         ...values,
         keywords,
-        publishDate: values.publishDate
-          ? new Date(values.publishDate).toISOString()
-          : undefined,
-        schedulePublish: values.schedulePublish
-          ? new Date(values.schedulePublish).toISOString()
-          : undefined,
+        publishDate: undefined,
+        schedulePublish: undefined,
         nestedCategoryId: values.nestedCategoryId || undefined,
         reporterId: values.reporterId || undefined,
         authorId: values.authorId || undefined,
@@ -231,14 +236,14 @@ export default function NewsForm({
         toast.success(
           payload.status === "review"
             ? "Article updated and submitted for review."
-            : "Article updated successfully."
+            : "Article updated successfully.",
         );
       } else {
         await createNewsArticle(payload);
         toast.success(
           payload.status === "published"
             ? "Article published successfully."
-            : "Article submitted for review successfully."
+            : "Article submitted for review successfully.",
         );
       }
       router.push("/dashboard/news");
@@ -400,7 +405,10 @@ export default function NewsForm({
 
                       {/* Featured Image Caption */}
                       <div className="space-y-1.5 pt-2">
-                        <Label htmlFor="featured-image-caption" className="text-xs text-gray-700">
+                        <Label
+                          htmlFor="featured-image-caption"
+                          className="text-xs text-gray-700"
+                        >
                           Featured Cover Image Caption (Optional)
                         </Label>
                         <Input
@@ -424,11 +432,15 @@ export default function NewsForm({
                         />
                       </div>
                       <div className="text-xs text-gray-500">
-                        Supports YouTube links (`youtube.com/watch?v=...`, `youtu.be/...`, `shorts/...`), Vimeo, or direct embed URLs.
+                        Supports YouTube links (`youtube.com/watch?v=...`,
+                        `youtu.be/...`, `shorts/...`), Vimeo, or direct embed
+                        URLs.
                       </div>
                       {watch("video") && getVideoEmbedUrl(watch("video")) && (
                         <div className="space-y-1.5 pt-2">
-                          <Label className="text-xs text-emerald-700 font-semibold">Video Preview</Label>
+                          <Label className="text-xs text-emerald-700 font-semibold">
+                            Video Preview
+                          </Label>
                           <div className="relative aspect-video w-full rounded-lg overflow-hidden border bg-black">
                             <iframe
                               src={getVideoEmbedUrl(watch("video"))!}
@@ -447,8 +459,13 @@ export default function NewsForm({
                   <div className="space-y-3 pt-6 border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-sm font-bold text-gray-800">Article Photo Gallery</Label>
-                        <p className="text-xs text-gray-500">Upload multiple images with individual captions to display a photo gallery in the news article.</p>
+                        <Label className="text-sm font-bold text-gray-800">
+                          Article Photo Gallery
+                        </Label>
+                        <p className="text-xs text-gray-500">
+                          Upload multiple images with individual captions to
+                          display a photo gallery in the news article.
+                        </p>
                       </div>
                       <Button
                         type="button"
@@ -468,18 +485,32 @@ export default function NewsForm({
                     {galleryItems && galleryItems.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         {galleryItems.map((item: any, idx: number) => (
-                          <div key={idx} className="flex gap-3 p-3 border rounded-lg bg-gray-50/80 items-start relative group">
+                          <div
+                            key={idx}
+                            className="flex gap-3 p-3 border rounded-lg bg-gray-50/80 items-start relative group"
+                          >
                             <div className="relative aspect-square w-16 h-16 rounded-md overflow-hidden border bg-white flex-shrink-0">
-                              <img src={item.url} alt={`Gallery ${idx + 1}`} className="object-cover w-full h-full" />
+                              <img
+                                src={item.url}
+                                alt={`Gallery ${idx + 1}`}
+                                className="object-cover w-full h-full"
+                              />
                             </div>
                             <div className="flex-1 space-y-1.5 min-w-0">
-                              <Label className="text-xs text-gray-600 font-semibold">Photo #{idx + 1} Caption</Label>
+                              <Label className="text-xs text-gray-600 font-semibold">
+                                Photo #{idx + 1} Caption
+                              </Label>
                               <Input
                                 value={item.caption || ""}
                                 onChange={(e) => {
                                   const updated = [...galleryItems];
-                                  updated[idx] = { ...updated[idx], caption: e.target.value };
-                                  setValue("gallery", updated, { shouldDirty: true });
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    caption: e.target.value,
+                                  };
+                                  setValue("gallery", updated, {
+                                    shouldDirty: true,
+                                  });
                                 }}
                                 placeholder="Enter caption for this image..."
                                 className="text-xs h-8 bg-white"
@@ -491,8 +522,12 @@ export default function NewsForm({
                               size="icon"
                               className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
                               onClick={() => {
-                                const updated = galleryItems.filter((_: any, i: number) => i !== idx);
-                                setValue("gallery", updated, { shouldDirty: true });
+                                const updated = galleryItems.filter(
+                                  (_: any, i: number) => i !== idx,
+                                );
+                                setValue("gallery", updated, {
+                                  shouldDirty: true,
+                                });
                               }}
                             >
                               <X className="w-4 h-4" />
@@ -509,8 +544,12 @@ export default function NewsForm({
                         className="flex flex-col items-center justify-center border border-dashed rounded-lg p-5 cursor-pointer bg-gray-50 hover:bg-gray-100/60 transition text-gray-500"
                       >
                         <ImageIcon className="w-6 h-6 mb-1 text-gray-400" />
-                        <p className="text-xs font-semibold text-gray-600">No gallery photos added yet</p>
-                        <p className="text-[11px] text-gray-400">Click to pick and attach extra photos with captions</p>
+                        <p className="text-xs font-semibold text-gray-600">
+                          No gallery photos added yet
+                        </p>
+                        <p className="text-[11px] text-gray-400">
+                          Click to pick and attach extra photos with captions
+                        </p>
                       </div>
                     )}
                   </div>
@@ -603,7 +642,8 @@ export default function NewsForm({
                   <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-md border border-amber-200 mt-2 flex items-start gap-1.5">
                     <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                     <span>
-                      You do not have publish permission. This article will be submitted to the review queue for approval.
+                      You do not have publish permission. This article will be
+                      submitted to the review queue for approval.
                     </span>
                   </div>
                 )}
@@ -611,28 +651,11 @@ export default function NewsForm({
                   <div className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-md border border-emerald-200 mt-2 flex items-start gap-1.5">
                     <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                     <span>
-                      As a publisher, you can approve and publish this article directly by selecting "Publish Now".
+                      As a publisher, you can approve and publish this article
+                      directly by selecting "Publish Now".
                     </span>
                   </div>
                 )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="news-publish-date">Publish Date Override</Label>
-                <Input
-                  id="news-publish-date"
-                  type="datetime-local"
-                  {...register("publishDate")}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="news-schedule">Schedule Release Publish</Label>
-                <Input
-                  id="news-schedule"
-                  type="datetime-local"
-                  {...register("schedulePublish")}
-                />
               </div>
             </CardContent>
           </Card>
@@ -928,11 +951,16 @@ export default function NewsForm({
                             <SelectValue placeholder="Select Position" />
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((pos) => (
-                              <SelectItem key={pos} value={pos.toString()}>
-                                Position {pos} {pos === 1 ? "(Hero Lead)" : "(Secondary Grid)"}
-                              </SelectItem>
-                            ))}
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                              (pos) => (
+                                <SelectItem key={pos} value={pos.toString()}>
+                                  Position {pos}{" "}
+                                  {pos === 1
+                                    ? "(Hero Lead)"
+                                    : "(Secondary Grid)"}
+                                </SelectItem>
+                              ),
+                            )}
                           </SelectContent>
                         </Select>
                       )}
@@ -944,21 +972,23 @@ export default function NewsForm({
           </Card>
 
           <div className="space-y-3">
-            {canPublish && initialData && initialData.status !== "published" && (
-              <Button
-                type="button"
-                size="lg"
-                className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold"
-                disabled={isSubmitting}
-                onClick={() => {
-                  setValue("status", "published");
-                  handleSubmit(onSubmit)();
-                }}
-              >
-                <CheckCircle className="w-5 h-5" />
-                Approve & Publish Article
-              </Button>
-            )}
+            {canPublish &&
+              initialData &&
+              initialData.status !== "published" && (
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    setValue("status", "published");
+                    handleSubmit(onSubmit)();
+                  }}
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  Approve & Publish Article
+                </Button>
+              )}
 
             <Button
               type="submit"

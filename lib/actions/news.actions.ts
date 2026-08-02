@@ -19,12 +19,15 @@ const NEWS_LIST_FIELDS =
  * Ensures that if a new article is assigned a lead position (1 to 12),
  * any previous article occupying that position is unset.
  */
-async function resolveLeadPositionConflicts(position: number, currentId?: string) {
+async function resolveLeadPositionConflicts(
+  position: number,
+  currentId?: string,
+) {
   const query: any = { lead: true, leadPosition: position };
   if (currentId) {
     query._id = { $ne: currentId };
   }
-  
+
   await News.updateMany(query, {
     $set: { lead: false, leadPosition: null },
   });
@@ -93,7 +96,9 @@ export async function getNewsArticles(params: {
   }
 }
 
-export async function getNewsArticleBySlug(slug: string): Promise<INews | null> {
+export async function getNewsArticleBySlug(
+  slug: string,
+): Promise<INews | null> {
   try {
     await connectToDatabase();
     const article = await News.findOne({ slug })
@@ -103,7 +108,7 @@ export async function getNewsArticleBySlug(slug: string): Promise<INews | null> 
       .populate("authorId", "name bio image socialLinks")
       .populate("tags", "name slug")
       .lean<INews>();
-    
+
     return article ? safeJson(article) : null;
   } catch (error) {
     handleError(error);
@@ -124,14 +129,18 @@ export async function getNewsArticleById(id: string): Promise<INews | null> {
   }
 }
 
-export async function createNewsArticle(params: NewsFormParams): Promise<INews> {
+export async function createNewsArticle(
+  params: NewsFormParams,
+): Promise<INews> {
   const adminAccess = await requirePermission("news", "create");
   const canPublish = hasPermission(adminAccess, "news", "publish");
 
   try {
     await connectToDatabase();
 
-    const slug = params.slug ? generateSlug(params.slug) : generateSlug(params.title);
+    const slug = params.slug
+      ? generateSlug(params.slug)
+      : generateSlug(params.title);
 
     // Verify uniqueness of slug
     const existing = await News.findOne({ slug });
@@ -150,12 +159,16 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
       await resolveLeadPositionConflicts(params.leadPosition);
     }
 
+    // Auto-set publishDate to now only when status is "published"
+    const publishDate = status === "published" ? new Date() : undefined;
+
     const newArticle = await News.create({
       ...params,
       status,
       slug,
       views: 0,
-      publishDate: params.publishDate ? new Date(params.publishDate) : new Date(),
+      publishDate,
+      schedulePublish: undefined,
     });
 
     await AuditLog.create({
@@ -163,9 +176,10 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
       action: status === "published" ? "publish" : "create",
       module: "news",
       targetId: newArticle._id.toString(),
-      details: status === "published"
-        ? `Created and published article "${params.title}"`
-        : `Created article "${params.title}" (Status: ${status})`,
+      details:
+        status === "published"
+          ? `Created and published article "${params.title}"`
+          : `Created article "${params.title}" (Status: ${status})`,
     });
 
     // Clear caches
@@ -181,7 +195,10 @@ export async function createNewsArticle(params: NewsFormParams): Promise<INews> 
   }
 }
 
-export async function updateNewsArticle(id: string, params: NewsFormParams): Promise<INews> {
+export async function updateNewsArticle(
+  id: string,
+  params: NewsFormParams,
+): Promise<INews> {
   const adminAccess = await requirePermission("news", "update");
   const canPublish = hasPermission(adminAccess, "news", "publish");
 
@@ -191,7 +208,9 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
     const article = await News.findById(id);
     if (!article) throw new Error("Article not found");
 
-    const slug = params.slug ? generateSlug(params.slug) : generateSlug(params.title);
+    const slug = params.slug
+      ? generateSlug(params.slug)
+      : generateSlug(params.title);
 
     if (slug !== article.slug) {
       const existing = await News.findOne({ slug });
@@ -204,7 +223,9 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
     let status = params.status || article.status;
     if (status === "published" && !canPublish) {
       if (article.status !== "published") {
-        throw new Error("Forbidden: You do not have permission to publish news articles.");
+        throw new Error(
+          "Forbidden: You do not have permission to publish news articles.",
+        );
       } else {
         // Sent for re-review if edited by non-publisher
         status = "review";
@@ -216,6 +237,13 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
       await resolveLeadPositionConflicts(params.leadPosition, id);
     }
 
+    // Determine publishDate: set to now when transitioning to published OR updating already published article
+    const wasPublished = article.status === "published";
+    const becomingPublished = status === "published" && !wasPublished;
+    const updatingPublished = status === "published" && wasPublished;
+    const publishDate =
+      becomingPublished || updatingPublished ? new Date() : article.publishDate;
+
     // Explicitly update all fields to prevent Mongoose schema validation gaps
     const updated = await News.findByIdAndUpdate(
       id,
@@ -224,7 +252,8 @@ export async function updateNewsArticle(id: string, params: NewsFormParams): Pro
           ...params,
           status,
           slug,
-          publishDate: params.publishDate ? new Date(params.publishDate) : article.publishDate,
+          publishDate,
+          schedulePublish: undefined,
         },
       },
       { returnDocument: "after" },
@@ -267,7 +296,7 @@ export async function approveNewsArticle(id: string): Promise<INews> {
       {
         $set: {
           status: "published",
-          publishDate: article.publishDate || new Date(),
+          publishDate: new Date(),
         },
       },
       { returnDocument: "after" },
@@ -311,7 +340,7 @@ export async function updateNewsStatus(
     if (!article) throw new Error("Article not found");
 
     const updateFields: any = { status };
-    if (status === "published" && !article.publishDate) {
+    if (status === "published") {
       updateFields.publishDate = new Date();
     }
 
