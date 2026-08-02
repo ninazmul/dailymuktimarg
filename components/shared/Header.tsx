@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Calendar, Newspaper, Share2, ChevronDown } from "lucide-react";
+import {
+  Menu,
+  X,
+  Calendar,
+  Newspaper,
+  Share2,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import Image from "next/image";
 
 export interface HeaderCategory {
@@ -38,7 +46,8 @@ function getBanglaEraDate(date: Date) {
 
   const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
-  let banglaYear = month > 3 || (month === 3 && day >= 14) ? year - 593 : year - 594;
+  let banglaYear =
+    month > 3 || (month === 3 && day >= 14) ? year - 593 : year - 594;
 
   let banglaMonth = "";
   let banglaDay = 1;
@@ -126,42 +135,60 @@ function SocialIcon({ platform }: { platform: string }) {
   const p = platform.toLowerCase();
   if (p.includes("facebook")) {
     return (
-      <svg className="w-3.5 h-3.5 fill-blue-600 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-blue-600 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M9 8H7v3h2v9h3v-9h3.6l.4-3H12V6c0-.5.5-1 1-1h2V2h-3C9.7 2 8 3.7 8 6v2H9z" />
       </svg>
     );
   }
   if (p.includes("twitter") || p === "x") {
     return (
-      <svg className="w-3.5 h-3.5 fill-gray-900 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-gray-900 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M18.2 2.4h3.3L14.3 11l8.5 11.3h-6.7L11 15.8l-6 6.5H1.8l7.6-8.7L1.3 2.4h6.9l4.7 6.2 5.3-6.2zm-1.2 17.6h1.8L7.1 4H5.2L17 20z" />
       </svg>
     );
   }
   if (p.includes("youtube")) {
     return (
-      <svg className="w-3.5 h-3.5 fill-red-600 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-red-600 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.4.5A3 3 0 0 0 .5 6.1C0 7.9 0 11.7 0 11.7s0 3.8.5 5.6a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.6.5-5.6s0-3.8-.5-5.6zM9.5 15V8.5l6.5 3.25L9.5 15z" />
       </svg>
     );
   }
   if (p.includes("instagram")) {
     return (
-      <svg className="w-3.5 h-3.5 fill-pink-600 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-pink-600 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
       </svg>
     );
   }
   if (p.includes("linkedin")) {
     return (
-      <svg className="w-3.5 h-3.5 fill-blue-700 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-blue-700 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
       </svg>
     );
   }
   if (p.includes("whatsapp")) {
     return (
-      <svg className="w-3.5 h-3.5 fill-green-600 flex-shrink-0" viewBox="0 0 24 24">
+      <svg
+        className="w-3.5 h-3.5 fill-green-600 flex-shrink-0"
+        viewBox="0 0 24 24"
+      >
         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
       </svg>
     );
@@ -177,7 +204,9 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [bengaliDate, setBengaliDate] = useState("");
-  const [openMobileSubmenus, setOpenMobileSubmenus] = useState<Record<string, boolean>>({});
+  const [openMobileSubmenus, setOpenMobileSubmenus] = useState<
+    Record<string, boolean>
+  >({});
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -208,7 +237,9 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobileOpen]);
 
-  const socialEntries = Object.entries(socialLinks || {}).filter(([_, url]) => Boolean(url));
+  const socialEntries = Object.entries(socialLinks || {}).filter(([_, url]) =>
+    Boolean(url),
+  );
 
   const toggleMobileSubmenu = (catId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -221,24 +252,44 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
   const allCategories = categories || [];
 
-  // Main navbar categories: marked with isNavbar and has no parent or parent is not a navbar category
-  const navCategories = allCategories.filter((cat) => {
-    if (!cat.isNavbar) return false;
-    const parentIdStr = getCatId(cat.parentId);
-    if (!parentIdStr) return true;
-    const parentCat = allCategories.find((c) => getCatId(c._id) === parentIdStr);
-    return !parentCat || !parentCat.isNavbar;
-  });
-
-  // Get all subcategories belonging to a parent category
-  const getSubcategories = (parentCatId: string) => {
-    return allCategories.filter((c) => getCatId(c.parentId) === parentCatId);
+  // Sort helper: priority ASC then name ASC
+  const sortCats = (a: HeaderCategory, b: HeaderCategory) => {
+    const pa = a.priority ?? 0;
+    const pb = b.priority ?? 0;
+    if (pa !== pb) return pa - pb;
+    return a.name.localeCompare(b.name);
   };
+
+  // Main navbar categories: marked with isNavbar and has no parent or parent is not a navbar category (ORIGINAL logic kept as-is)
+  const navCategories = allCategories
+    .filter((cat) => {
+      if (!cat.isNavbar) return false;
+      const parentIdStr = getCatId(cat.parentId);
+      if (!parentIdStr) return true;
+      const parentCat = allCategories.find(
+        (c) => getCatId(c._id) === parentIdStr,
+      );
+      return !parentCat || !parentCat.isNavbar;
+    })
+    .sort(sortCats);
+
+  // Get all subcategories belonging to a parent category (sorted)
+  const getSubcategories = (parentCatId: string) => {
+    return allCategories
+      .filter((c) => getCatId(c.parentId) === parentCatId)
+      .sort(sortCats);
+  };
+
+  // ALL root-level categories + subcategories for the "All Categories" mega menu (ignores isNavbar flag)
+  const allRootCategories = allCategories
+    .filter((cat) => !getCatId(cat.parentId))
+    .sort(sortCats);
 
   return (
     <header
-      className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"
-        }`}
+      className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
       {/* Top Logo Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
@@ -272,7 +323,9 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
           {/* Line 1: Bengali Date */}
           <div className="text-xs lg:text-sm font-semibold text-gray-700 flex items-center justify-center gap-1.5 whitespace-nowrap bg-gray-50 px-3 py-1 rounded-full border border-gray-200/80">
             <Calendar className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-            <span>{bengaliDate || "বৃহস্পতিবার, ২৩ জুলাই ২০২৬, ৭ শ্রাবণ ১৪৩৩"}</span>
+            <span>
+              {bengaliDate || "বৃহস্পতিবার, ২৩ জুলাই ২০২৬, ৭ শ্রাবণ ১৪৩৩"}
+            </span>
           </div>
 
           {/* Line 2: Today's Paper & Social Media Dropdown */}
@@ -299,7 +352,9 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               <div className="absolute right-0 top-full pt-1.5 hidden group-hover:block z-50 w-48 shadow-xl animate-fadeIn">
                 <div className="bg-white rounded-xl border border-gray-200 py-1.5 shadow-lg space-y-0.5">
                   {socialEntries.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-gray-400 font-normal">কোনো সোশ্যাল লিংক নেই</div>
+                    <div className="px-3 py-2 text-xs text-gray-400 font-normal">
+                      কোনো সোশ্যাল লিংক নেই
+                    </div>
                   ) : (
                     socialEntries.map(([platform, url]) => (
                       <a
@@ -333,13 +388,26 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
         </button>
       </div>
 
-      {/* Desktop Navigation */}
-      <div className="hidden md:block border-t border-gray-100 overflow-x-auto scrollbar-none">
+      {/* Desktop Navigation - ALWAYS VISIBLE sticky menubar */}
+      <div className="hidden md:block border-t-2 border-b border-primary/30 bg-gradient-to-r from-white via-primary/5 to-white sticky top-0 z-[100] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.2)]">
         <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex items-center justify-between gap-1 py-2 whitespace-nowrap min-w-max">
+          <nav className="flex flex-wrap items-center gap-2 py-2.5">
+            {/* ============ SEARCH BUTTON (LEFT SIDE) links to /search ============ */}
+            <Link
+              href="/search"
+              title="খুঁজুন"
+              className="flex-shrink-0 mr-1 inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border-2 border-primary/20 text-primary font-extrabold shadow-sm hover:bg-gradient-to-r hover:from-primary hover:to-primary hover:text-white hover:border-primary hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-sm">খুঁজুন</span>
+            </Link>
+
+            {/* Nav Divider */}
+            <span className="h-7 w-px bg-gray-200/80 mx-0.5 flex-shrink-0" />
+
             <Link
               href="/"
-              className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition flex-shrink-0"
+              className="px-4 py-2 font-extrabold text-gray-800 hover:text-primary transition-all duration-200 flex-shrink-0"
             >
               হোম
             </Link>
@@ -354,7 +422,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                   <Link
                     key={cat._id}
                     href={`/category/${cat.slug}`}
-                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition"
+                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary transition-all duration-200 inline-flex items-center"
                   >
                     {cat.name}
                   </Link>
@@ -365,36 +433,136 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                 <div key={cat._id} className="relative group">
                   <Link
                     href={`/category/${cat.slug}`}
-                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition inline-flex items-center gap-1.5"
+                    className="px-4 py-2 font-semibold text-gray-700 hover:text-primary transition-all duration-200 inline-flex items-center"
                   >
                     <span>{cat.name}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:rotate-180 transition-transform duration-200 flex-shrink-0" />
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary group-hover:rotate-180 transition-all duration-200 flex-shrink-0" />
                   </Link>
 
                   {/* Dropdown Menu */}
-                  <div className="absolute left-0 top-full pt-1 hidden group-hover:block group-focus-within:block z-50 min-w-[200px] shadow-xl animate-fadeIn">
-                    <div className="bg-white rounded-xl border border-gray-200 py-2 shadow-lg space-y-0.5">
-                      {subCats.map((subCat) => (
-                        <Link
-                          key={subCat._id}
-                          href={`/category/${subCat.slug}`}
-                          className="flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-primary/10 hover:text-primary transition"
-                        >
-                          <span>{subCat.name}</span>
-                        </Link>
-                      ))}
+                  <div className="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50 min-w-[240px] shadow-2xl animate-fadeIn">
+                    <div className="bg-white rounded-2xl border border-gray-200 py-2 shadow-xl space-y-0.5 overflow-hidden">
+                      {/* Parent category link at top */}
+                      <Link
+                        href={`/category/${cat.slug}`}
+                        className="flex items-center px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/75 transition"
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <span>📌</span>
+                          <span>{cat.name} - সব দেখুন</span>
+                        </span>
+                      </Link>
+                      <div className="px-2 py-1.5 space-y-0.5">
+                        {subCats.map((subCat) => (
+                          <Link
+                            key={subCat._id}
+                            href={`/category/${subCat.slug}`}
+                            className="group/sub flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-primary/10 hover:text-primary transition"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="text-gray-300 group-hover/sub:text-primary transition-colors">
+                                ▸
+                              </span>
+                              <span>{subCat.name}</span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               );
             })}
 
-            <Link
-              href="/search"
-              className="px-4 py-2 font-semibold text-gray-500 hover:text-primary transition flex-shrink-0"
-            >
-              🔍
-            </Link>
+            {/* ============ ALL CATEGORIES MEGA DROPDOWN (always shows full tree) ============ */}
+            <div className="relative group ml-auto">
+              <button
+                type="button"
+                className="px-4 py-2 font-extrabold text-primary bg-gradient-to-r from-white to-primary/10 border-2 border-primary/30 hover:from-primary hover:to-primary hover:text-white rounded-lg transition-all duration-200 inline-flex items-center gap-2 flex-shrink-0 shadow-sm hover:shadow-md active:scale-[0.98]"
+              >
+                <span className="text-sm">☰</span>
+                <span>সব ক্যাটাগরি</span>
+                <ChevronDown className="w-4 h-4 text-primary group-hover:text-white group-hover:rotate-180 transition-all duration-200 flex-shrink-0" />
+              </button>
+
+              {/* Mega Dropdown Panel */}
+              <div className="absolute right-0 top-full pt-1.5 hidden group-hover:block group-focus-within:block z-50 animate-fadeIn">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-xl min-w-[650px] max-w-[950px] max-h-[70vh] overflow-y-auto p-4">
+                  {allRootCategories.length === 0 ? (
+                    <div className="py-6 text-sm text-center text-gray-500">
+                      কোনো ক্যাটাগরি পাওয়া যায়নি
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                      {allRootCategories.map((rootCat) => {
+                        const rootIdStr = getCatId(rootCat._id) || rootCat.slug;
+                        const subCats = getSubcategories(rootIdStr);
+
+                        return (
+                          <div
+                            key={rootCat._id}
+                            className="rounded-lg border border-gray-100 p-2.5 hover:border-primary/20 hover:shadow-sm transition"
+                          >
+                            {/* Root Category */}
+                            <Link
+                              href={`/category/${rootCat.slug}`}
+                              className="group/cat flex items-center justify-between rounded-md px-2 py-1.5 text-sm font-bold text-gray-900 hover:bg-primary hover:text-white transition"
+                            >
+                              <span className="truncate flex items-center gap-1.5">
+                                <span>📁</span>
+                                {rootCat.name}
+                              </span>
+
+                              {subCats.length > 0 && (
+                                <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary group-hover/cat:bg-white group-hover/cat:text-primary">
+                                  {subCats.length}
+                                </span>
+                              )}
+                            </Link>
+
+                            {/* Subcategories */}
+                            {subCats.length > 0 ? (
+                              <div className="mt-1 space-y-0.5">
+                                {subCats.map((subCat) => (
+                                  <Link
+                                    key={subCat._id}
+                                    href={`/category/${subCat.slug}`}
+                                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 hover:text-primary transition"
+                                  >
+                                    <span className="text-gray-300">▸</span>
+                                    <span className="truncate">
+                                      {subCat.name}
+                                    </span>
+                                  </Link>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="mt-1 px-2 text-[10px] italic text-gray-400">
+                                কোনো উপ-ক্যাটাগরি নেই
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                    <span className="text-[11px] text-gray-500">
+                      পছন্দের খবর দ্রুত খুঁজুন
+                    </span>
+
+                    <Link
+                      href="/search"
+                      className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90 transition"
+                    >
+                      🔍 সব কনটেন্ট
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
           </nav>
         </div>
       </div>
