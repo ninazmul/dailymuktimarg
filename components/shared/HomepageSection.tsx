@@ -248,6 +248,27 @@ export default function HomepageSection({
             ))}
           </div>
         </div>
+      ) : layout === "sidebar" ? (
+        /* Sidebar Widget Layout */
+        <div className="flex flex-col gap-3">
+          {articles.map((article) => (
+            <Link
+              key={article._id}
+              href={`/news/${article.slug}`}
+              className="group flex gap-3 bg-white rounded-xl border p-2.5 hover:shadow-md transition"
+            >
+              <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                <VideoPreview article={article} />
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <ArticleBadges article={article} />
+                <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                  {article.title}
+                </h4>
+              </div>
+            </Link>
+          ))}
+        </div>
       ) : (
         /* Grid Layout (default 3 columns) */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

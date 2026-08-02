@@ -68,10 +68,32 @@ export default async function ArticlePage({ params }: PageProps) {
   })
     .populate("categoryId", "name slug")
     .sort({ publishDate: -1 })
-    .limit(4)
+    .limit(6)
+    .lean<any[]>();
+
+  // Latest articles for sidebar fallback
+  const latest = await News.find({
+    status: "published",
+    _id: { $ne: article._id },
+  })
+    .populate("categoryId", "name slug")
+    .sort({ publishDate: -1 })
+    .limit(6)
+    .lean<any[]>();
+
+  // Most viewed articles for sidebar
+  const mostViewed = await News.find({
+    status: "published",
+    _id: { $ne: article._id },
+  })
+    .populate("categoryId", "name slug")
+    .sort({ views: -1 })
+    .limit(5)
     .lean<any[]>();
 
   const safeRelated = JSON.parse(JSON.stringify(related));
+  const safeLatest = JSON.parse(JSON.stringify(latest));
+  const safeMostViewed = JSON.parse(JSON.stringify(mostViewed));
   const safeArticle = JSON.parse(JSON.stringify(article));
 
   const baseUrl =
@@ -395,45 +417,127 @@ export default async function ArticlePage({ params }: PageProps) {
             </p>
           )}
 
-          {/* Related Articles */}
-          {safeRelated.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-xl font-black text-gray-800 border-l-4 border-primary pl-3 mb-4">
-                Related Articles
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {safeRelated.map((rel: any) => (
-                  <Link
-                    key={rel._id}
-                    href={`/news/${rel.slug}`}
-                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-md transition"
-                  >
-                    <div className="relative aspect-video">
-                      <Image
-                        src={rel.featuredImage}
-                        alt={rel.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
-                        {rel.title}
-                      </h3>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Sidebar Ads */}
-        {sidebarAds.length > 0 && (
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+        {/* Sidebar */}
+        {(sidebarAds.length > 0 || safeRelated.length > 0 || safeLatest.length > 0 || safeMostViewed.length > 0) && (
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-6 lg:sticky lg:top-24 lg:self-start">
+            {/* Advertisements */}
             {sidebarAds.map((ad) => (
               <Ad key={ad._id.toString()} ad={ad} />
             ))}
+
+            {/* Related Articles on Sidebar */}
+            {safeRelated.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-black text-gray-800 border-l-4 border-primary pl-3">
+                  Related Articles
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {safeRelated.map((rel: any) => (
+                    <Link
+                      key={rel._id}
+                      href={`/news/${rel.slug}`}
+                      className="group flex gap-3 bg-white rounded-xl border p-2.5 hover:shadow-md transition"
+                    >
+                      <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                        <Image
+                          src={rel.featuredImage || "/assets/images/logo.png"}
+                          alt={rel.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        {rel.categoryId?.name && (
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
+                            {rel.categoryId.name}
+                          </span>
+                        )}
+                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                          {rel.title}
+                        </h4>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Latest Articles on Sidebar */}
+            {safeRelated.length < 3 && safeLatest.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-black text-gray-800 border-l-4 border-blue-600 pl-3">
+                  Latest News
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {safeLatest.map((item: any) => (
+                    <Link
+                      key={item._id}
+                      href={`/news/${item.slug}`}
+                      className="group flex gap-3 bg-white rounded-xl border p-2.5 hover:shadow-md transition"
+                    >
+                      <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                        <Image
+                          src={item.featuredImage || "/assets/images/logo.png"}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        {item.categoryId?.name && (
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
+                            {item.categoryId.name}
+                          </span>
+                        )}
+                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                          {item.title}
+                        </h4>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Most Viewed Articles Widget on Sidebar */}
+            {safeMostViewed.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-black text-gray-800 border-l-4 border-amber-500 pl-3">
+                  Most Read Articles
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {safeMostViewed.map((item: any, idx: number) => (
+                    <Link
+                      key={item._id}
+                      href={`/news/${item.slug}`}
+                      className="group flex gap-3 bg-white rounded-xl border p-2.5 hover:shadow-md transition items-center"
+                    >
+                      <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="relative w-16 h-14 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                        <Image
+                          src={item.featuredImage || "/assets/images/logo.png"}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">
+                          {item.title}
+                        </h4>
+                        <span className="text-[10px] text-gray-400 mt-0.5">
+                          {item.views || 0} views
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

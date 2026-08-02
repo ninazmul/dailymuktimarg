@@ -57,6 +57,7 @@ const LAYOUT_TYPES = [
   { value: "list", label: "List (Horizontal Rows)" },
   { value: "slider", label: "Slider / Carousel" },
   { value: "sidebarLayout", label: "Sidebar Layout (1 Big + Side Stack)" },
+  { value: "sidebar", label: "Sidebar (Right Sidebar Widget)" },
 ];
 
 const AD_PLACEMENT_OPTIONS = [

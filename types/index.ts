@@ -156,7 +156,7 @@ export type HomepageLayoutFormParams = {
   sectionType: "hero" | "lead" | "categoryGrid" | "trending" | "widgets" | "videoGallery" | "photoGallery" | "breaking" | "featured";
   categoryId?: string;
   postsCount?: number;
-  layoutType?: "grid" | "list" | "slider" | "sidebarLayout";
+  layoutType?: "grid" | "list" | "slider" | "sidebarLayout" | "sidebar";
   enabled?: boolean;
   isPinned?: boolean;
   order?: number;

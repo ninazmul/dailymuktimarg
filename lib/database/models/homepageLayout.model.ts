@@ -6,7 +6,7 @@ export interface IHomepageLayout extends Document {
   sectionType: "hero" | "lead" | "categoryGrid" | "trending" | "widgets" | "videoGallery" | "photoGallery" | "breaking" | "featured";
   categoryId?: Types.ObjectId; // References Category
   postsCount: number;
-  layoutType: "grid" | "list" | "slider" | "sidebarLayout";
+  layoutType: "grid" | "list" | "slider" | "sidebarLayout" | "sidebar";
   enabled: boolean;
   isPinned: boolean;
   order: number;
@@ -37,7 +37,7 @@ const HomepageLayoutSchema = new Schema(
     postsCount: { type: Number, default: 5 },
     layoutType: {
       type: String,
-      enum: ["grid", "list", "slider", "sidebarLayout"],
+      enum: ["grid", "list", "slider", "sidebarLayout", "sidebar"],
       default: "grid",
       required: true,
     },

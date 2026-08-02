@@ -864,27 +864,6 @@ export default function NewsForm({
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="check-trending"
-                  checked={watch("trending")}
-                  onCheckedChange={(val) => setValue("trending", !!val)}
-                />
-                <Label htmlFor="check-trending" className="cursor-pointer">
-                  Trending Articles Panel
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="check-featured"
-                  checked={watch("featured")}
-                  onCheckedChange={(val) => setValue("featured", !!val)}
-                />
-                <Label htmlFor="check-featured" className="cursor-pointer">
-                  Editor's Featured Pick
-                </Label>
-              </div>
 
               {/* Lead Placement Pos */}
               <div className="space-y-2 border-t pt-4">
