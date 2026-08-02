@@ -252,13 +252,39 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
   const allCategories = categories || [];
 
-  // Sort helper: priority ASC then name ASC
+  // ------------------------------
+  // Shared sort
+  // ------------------------------
   const sortCats = (a: HeaderCategory, b: HeaderCategory) => {
-    const pa = a.priority ?? 0;
-    const pb = b.priority ?? 0;
+    const pa = a.priority ?? Number.MAX_SAFE_INTEGER;
+    const pb = b.priority ?? Number.MAX_SAFE_INTEGER;
+
     if (pa !== pb) return pa - pb;
+
     return a.name.localeCompare(b.name);
   };
+
+  // ------------------------------
+  // Parent -> Children lookup
+  // ------------------------------
+  const childrenMap = new Map<string, HeaderCategory[]>();
+
+  for (const cat of allCategories) {
+    const parentId = getCatId(cat.parentId);
+    if (!parentId) continue;
+
+    if (!childrenMap.has(parentId)) {
+      childrenMap.set(parentId, []);
+    }
+
+    childrenMap.get(parentId)!.push(cat);
+  }
+
+  // Sort children once
+  childrenMap.forEach((children) => children.sort(sortCats));
+
+  const getSubcategories = (parentId: string) =>
+    childrenMap.get(parentId) ?? [];
 
   // Main navbar categories: marked with isNavbar and has no parent or parent is not a navbar category (ORIGINAL logic kept as-is)
   const navCategories = allCategories
@@ -273,17 +299,41 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
     })
     .sort(sortCats);
 
-  // Get all subcategories belonging to a parent category (sorted)
-  const getSubcategories = (parentCatId: string) => {
-    return allCategories
-      .filter((c) => getCatId(c.parentId) === parentCatId)
-      .sort(sortCats);
-  };
-
   // ALL root-level categories + subcategories for the "All Categories" mega menu (ignores isNavbar flag)
   const allRootCategories = allCategories
     .filter((cat) => !getCatId(cat.parentId))
-    .sort(sortCats);
+    .sort((a, b) => {
+      const aPriority = a.priority ?? 9999;
+      const bPriority = b.priority ?? 9999;
+
+      // Priority group
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+
+      const aSubCount = getSubcategories(a._id).length;
+      const bSubCount = getSubcategories(b._id).length;
+
+      // Has subcategories first
+      if (aSubCount > 0 !== bSubCount > 0) {
+        return aSubCount > 0 ? -1 : 1;
+      }
+
+      // More subcategories first
+      if (aSubCount !== bSubCount) {
+        return bSubCount - aSubCount;
+      }
+
+      return a.name.localeCompare(b.name, "bn");
+    });
+
+  const categoriesWithSubs = allRootCategories.filter(
+    (cat) => getSubcategories(cat._id).length > 0,
+  );
+
+  const singleCategories = allRootCategories.filter(
+    (cat) => getSubcategories(cat._id).length === 0,
+  );
 
   return (
     <header
@@ -487,65 +537,52 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
               {/* Mega Dropdown Panel */}
               <div className="absolute right-0 top-full pt-1.5 hidden group-hover:block group-focus-within:block z-50 animate-fadeIn">
-                <div className="bg-white rounded-xl border border-gray-200 shadow-xl min-w-[650px] max-w-[950px] max-h-[70vh] overflow-y-auto p-4">
-                  {allRootCategories.length === 0 ? (
-                    <div className="py-6 text-sm text-center text-gray-500">
-                      কোনো ক্যাটাগরি পাওয়া যায়নি
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                      {allRootCategories.map((rootCat) => {
-                        const rootIdStr = getCatId(rootCat._id) || rootCat.slug;
-                        const subCats = getSubcategories(rootIdStr);
+                <div className="bg-white rounded-lg border border-gray-200 shadow-lg min-w-[700px] max-w-[900px] max-h-[70vh] overflow-y-auto p-3">
+                  <div className="grid grid-cols-5 gap-x-8 gap-y-4">
+                    {categoriesWithSubs.map((rootCat) => {
+                      const subCats = getSubcategories(rootCat._id);
 
-                        return (
-                          <div
-                            key={rootCat._id}
-                            className="rounded-lg border border-gray-100 p-2.5 hover:border-primary/20 hover:shadow-sm transition"
+                      return (
+                        <div key={rootCat._id}>
+                          <Link
+                            href={`/category/${rootCat.slug}`}
+                            className="block text-sm font-bold mb-1 hover:text-primary"
                           >
-                            {/* Root Category */}
-                            <Link
-                              href={`/category/${rootCat.slug}`}
-                              className="group/cat flex items-center justify-between rounded-md px-2 py-1.5 text-sm font-bold text-gray-900 hover:bg-primary hover:text-white transition"
-                            >
-                              <span className="truncate flex items-center gap-1.5">
-                                <span>📁</span>
-                                {rootCat.name}
-                              </span>
+                            {rootCat.name}
+                          </Link>
 
-                              {subCats.length > 0 && (
-                                <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary group-hover/cat:bg-white group-hover/cat:text-primary">
-                                  {subCats.length}
-                                </span>
-                              )}
-                            </Link>
+                          <ul className="space-y-0.5 ml-3">
+                            {subCats.map((subCat) => (
+                              <li key={subCat._id}>
+                                <Link
+                                  href={`/category/${subCat.slug}`}
+                                  className="text-xs text-gray-600 hover:text-primary"
+                                >
+                                  • {subCat.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                            {/* Subcategories */}
-                            {subCats.length > 0 ? (
-                              <div className="mt-1 space-y-0.5">
-                                {subCats.map((subCat) => (
-                                  <Link
-                                    key={subCat._id}
-                                    href={`/category/${subCat.slug}`}
-                                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 hover:text-primary transition"
-                                  >
-                                    <span className="text-gray-300">▸</span>
-                                    <span className="truncate">
-                                      {subCat.name}
-                                    </span>
-                                  </Link>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="mt-1 px-2 text-[10px] italic text-gray-400">
-                                কোনো উপ-ক্যাটাগরি নেই
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
+                  <div className="border-t mt-5 pt-4">
+                    <h3 className="text-sm font-bold mb-3">অন্যান্য বিভাগ</h3>
+
+                    <div className="flex flex-wrap gap-2">
+                      {singleCategories.map((cat) => (
+                        <Link
+                          key={cat._id}
+                          href={`/category/${cat.slug}`}
+                          className="rounded-full bg-gray-100 px-3 py-1 text-sm hover:bg-primary hover:text-white transition"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
                     </div>
-                  )}
+                  </div>
 
                   {/* Footer */}
                   <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
