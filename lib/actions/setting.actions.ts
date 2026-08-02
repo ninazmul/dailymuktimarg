@@ -23,50 +23,54 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
     await requirePermission("settings", "update");
     await connectToDatabase();
 
-    let setting = await Setting.findOne();
-    if (!setting) {
-      setting = new Setting({
-        contactEmail: params.contactEmail,
-        phoneNumber: params.phoneNumber,
-        address: params.address,
-        socialLinks: params.socialLinks,
-        headerScript: params.headerScript,
-        footerScript: params.footerScript,
-        maintenanceMode: params.maintenanceMode ?? false,
-        seo: params.seo,
-        todaysNewsLayout: params.todaysNewsLayout,
-      });
-      await setting.save();
-    } else {
-      if (params.contactEmail !== undefined) setting.contactEmail = params.contactEmail;
-      if (params.phoneNumber !== undefined) setting.phoneNumber = params.phoneNumber;
-      if (params.address !== undefined) setting.address = params.address;
-      if (params.socialLinks !== undefined) setting.socialLinks = params.socialLinks;
-      if (params.headerScript !== undefined) setting.headerScript = params.headerScript;
-      if (params.footerScript !== undefined) setting.footerScript = params.footerScript;
-      if (params.maintenanceMode !== undefined) setting.maintenanceMode = params.maintenanceMode;
-      if (params.seo !== undefined) {
-        // Merge existing SEO with new params to preserve fields not being updated
-        setting.seo = {
-          ...(setting.seo || {}),
-          ...params.seo,
-        };
-      }
-      if (params.todaysNewsLayout !== undefined) {
-        setting.todaysNewsLayout = {
-          ...(setting.todaysNewsLayout || {}),
-          ...params.todaysNewsLayout,
-        };
-      }
+    // Build a flat $set map so every field is saved explicitly via dot-notation.
+    // This avoids Mongoose change-detection issues with nested booleans like showSidebar.
+    const setMap: Record<string, any> = {};
 
-      await setting.save();
+    if (params.contactEmail !== undefined) setMap["contactEmail"] = params.contactEmail;
+    if (params.phoneNumber !== undefined) setMap["phoneNumber"] = params.phoneNumber;
+    if (params.address !== undefined) setMap["address"] = params.address;
+    if (params.socialLinks !== undefined) setMap["socialLinks"] = params.socialLinks;
+    if (params.headerScript !== undefined) setMap["headerScript"] = params.headerScript;
+    if (params.footerScript !== undefined) setMap["footerScript"] = params.footerScript;
+    if (params.maintenanceMode !== undefined) setMap["maintenanceMode"] = params.maintenanceMode;
+
+    if (params.seo !== undefined) {
+      Object.entries(params.seo).forEach(([key, val]) => {
+        if (val !== undefined) setMap[`seo.${key}`] = val;
+      });
     }
+
+    if (params.todaysNewsLayout !== undefined) {
+      // Write each sub-field explicitly as a dot-notation path so booleans
+      // (including false) are always persisted correctly.
+      Object.entries(params.todaysNewsLayout).forEach(([key, val]) => {
+        if (val !== undefined) setMap[`todaysNewsLayout.${key}`] = val;
+      });
+      // Explicitly include boolean fields even when false
+      if (params.todaysNewsLayout.showSidebar !== undefined) {
+        setMap["todaysNewsLayout.showSidebar"] = params.todaysNewsLayout.showSidebar;
+      }
+      if (params.todaysNewsLayout.showLeadHero !== undefined) {
+        setMap["todaysNewsLayout.showLeadHero"] = params.todaysNewsLayout.showLeadHero;
+      }
+      if (params.todaysNewsLayout.showCategoryFilter !== undefined) {
+        setMap["todaysNewsLayout.showCategoryFilter"] = params.todaysNewsLayout.showCategoryFilter;
+      }
+    }
+
+    const updated = await Setting.findOneAndUpdate(
+      {},
+      { $set: setMap },
+      { upsert: true, new: true, lean: true },
+    );
 
     revalidatePath("/dashboard/settings");
     revalidatePath("/dashboard/todays-news");
     revalidatePath("/todays-news");
     revalidatePath("/");
-    return safeJson(setting);
+
+    return safeJson(updated);
   } catch (error) {
     handleError(error);
     throw error;

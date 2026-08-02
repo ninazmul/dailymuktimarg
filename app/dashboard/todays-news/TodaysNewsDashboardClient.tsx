@@ -20,6 +20,8 @@ import { toast } from "react-hot-toast";
 import { DashboardAccess, hasPermission } from "@/lib/auth/rbac-rules";
 import Link from "next/link";
 
+import { useRouter } from "next/navigation";
+
 export default function TodaysNewsDashboardClient({
   initialSetting,
   access,
@@ -27,6 +29,7 @@ export default function TodaysNewsDashboardClient({
   initialSetting: ISetting | null;
   access: DashboardAccess;
 }) {
+  const router = useRouter();
   const currentLayout = initialSetting?.todaysNewsLayout || {};
 
   const [title, setTitle] = useState(currentLayout.title || "আজকের পত্রিকা");
@@ -53,6 +56,9 @@ export default function TodaysNewsDashboardClient({
   const [adPlacement, setAdPlacement] = useState<string>(
     currentLayout.adPlacement || "inline"
   );
+  const [showSidebar, setShowSidebar] = useState<boolean>(
+    currentLayout.showSidebar !== undefined ? currentLayout.showSidebar : false
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canUpdate = hasPermission(access, "todays-news", "update");
@@ -70,9 +76,11 @@ export default function TodaysNewsDashboardClient({
           sortBy,
           showCategoryFilter,
           adPlacement: (adPlacement as any) || "inline",
+          showSidebar,
         },
       });
       toast.success("Today's News layout saved successfully.");
+      router.refresh();
     } catch (err: any) {
       toast.error(err.message || "Failed to save layout.");
     } finally {
@@ -162,11 +170,10 @@ export default function TodaysNewsDashboardClient({
                   <button
                     type="button"
                     onClick={() => canUpdate && setLayoutStyle("leadGrid")}
-                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${
-                      layoutStyle === "leadGrid"
+                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${layoutStyle === "leadGrid"
                         ? "border-primary bg-primary/5 text-primary font-semibold"
                         : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
+                      }`}
                   >
                     <Sparkles className="w-6 h-6" />
                     <span className="text-xs">Lead Story + Grid</span>
@@ -175,11 +182,10 @@ export default function TodaysNewsDashboardClient({
                   <button
                     type="button"
                     onClick={() => canUpdate && setLayoutStyle("grid")}
-                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${
-                      layoutStyle === "grid"
+                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${layoutStyle === "grid"
                         ? "border-primary bg-primary/5 text-primary font-semibold"
                         : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
+                      }`}
                   >
                     <LayoutGrid className="w-6 h-6" />
                     <span className="text-xs">Standard Grid</span>
@@ -188,11 +194,10 @@ export default function TodaysNewsDashboardClient({
                   <button
                     type="button"
                     onClick={() => canUpdate && setLayoutStyle("list")}
-                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${
-                      layoutStyle === "list"
+                    className={`p-4 rounded-xl border-2 text-left transition flex flex-col items-center justify-center text-center gap-2 ${layoutStyle === "list"
                         ? "border-primary bg-primary/5 text-primary font-semibold"
                         : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
+                      }`}
                   >
                     <List className="w-6 h-6" />
                     <span className="text-xs">List View</span>
@@ -292,7 +297,23 @@ export default function TodaysNewsDashboardClient({
                     Enable Category Filter Bar
                   </Label>
                   <p className="text-xs text-gray-500">
-                    Allows readers to filter today&apos;s news by category tabs (e.g. জাতীয়, রাজনীতি, খেলা, বিনোদন).
+                    Allows readers to filter today&apos;s news by category tabs (e.g. জাতীয়, রাজনীতি, খেলা, বিনোদন).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                <Checkbox
+                  id="showSidebar"
+                  checked={showSidebar}
+                  onCheckedChange={(v) => canUpdate && setShowSidebar(!!v)}
+                />
+                <div>
+                  <Label htmlFor="showSidebar" className="cursor-pointer font-semibold text-sm text-emerald-800">
+                    Enable Right Sidebar
+                  </Label>
+                  <p className="text-xs text-emerald-700">
+                    Shows a right sidebar with Latest News, Most Read articles, and dynamic sections added from the Homepage Builder.
                   </p>
                 </div>
               </div>
@@ -336,17 +357,17 @@ export default function TodaysNewsDashboardClient({
                 </span>
               </div>
 
-              <div className="flex justify-between pb-1">
+              <div className="flex justify-between border-b pb-2">
                 <span className="text-gray-500">Ad Placement:</span>
                 <span className="font-semibold text-gray-800 capitalize">{adPlacement}</span>
               </div>
 
-              {canUpdate && (
-                <Button onClick={handleSave} disabled={isSubmitting} className="w-full mt-4 gap-2">
-                  <Save className="w-4 h-4" />
-                  {isSubmitting ? "Saving..." : "Save Settings"}
-                </Button>
-              )}
+              <div className="flex justify-between pb-1">
+                <span className="text-gray-500">Sidebar:</span>
+                <span className={`font-semibold ${showSidebar ? 'text-emerald-600' : 'text-gray-500'}`}>
+                  {showSidebar ? "Enabled" : "Disabled"}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>

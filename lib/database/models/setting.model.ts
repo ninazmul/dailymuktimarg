@@ -32,6 +32,7 @@ export interface ISetting extends Document {
     sortBy?: "publishDate" | "views";
     showCategoryFilter?: boolean;
     adPlacement?: "top" | "bottom" | "inline";
+    showSidebar?: boolean;
   };
   createdAt?: Date;
   updatedAt?: Date;
@@ -73,6 +74,7 @@ const SettingSchema = new Schema(
         sortBy: { type: String, enum: ["publishDate", "views"], default: "publishDate" },
         showCategoryFilter: { type: Boolean, default: true },
         adPlacement: { type: String, enum: ["top", "bottom", "inline", null], default: "inline" },
+        showSidebar: { type: Boolean, default: false },
       },
       default: {},
     },

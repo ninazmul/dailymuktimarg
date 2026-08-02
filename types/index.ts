@@ -111,6 +111,7 @@ export type SettingFormParams = {
     sortBy?: "publishDate" | "views";
     showCategoryFilter?: boolean;
     adPlacement?: "top" | "bottom" | "inline";
+    showSidebar?: boolean;
   };
 };
 
