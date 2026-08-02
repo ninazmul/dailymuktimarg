@@ -164,10 +164,10 @@ function FoundersSection({ founders }: { founders: IPageSection["founders"] }) {
 
               {/* Name & Role overlay on image bottom */}
               <div className="absolute bottom-0 left-0 right-0 p-4 text-left text-white space-y-1">
-                <span className="inline-block px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-primary text-white rounded-full shadow-sm">
+                <span className="inline-block px-2.5 py-0.5 text-[14px] font-bold uppercase tracking-wider bg-primary text-white rounded-full shadow-sm">
                   {founder.role || "Founder & Team"}
                 </span>
-                <h3 className="text-xl md:text-2xl font-black tracking-tight drop-shadow-sm">
+                <h3 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">
                   {founder.name}
                 </h3>
               </div>
@@ -306,9 +306,8 @@ function ImageBannerSection({
   if (isSplit) {
     return (
       <div
-        className={`flex flex-col lg:flex-row items-center gap-8 bg-gray-50 dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-100 dark:border-gray-800 ${
-          banner.layout === "split-right" ? "lg:flex-row-reverse" : ""
-        }`}
+        className={`flex flex-col lg:flex-row items-center gap-8 bg-gray-50 dark:bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-100 dark:border-gray-800 ${banner.layout === "split-right" ? "lg:flex-row-reverse" : ""
+          }`}
       >
         <div className="w-full lg:w-1/2 relative h-64 md:h-80 rounded-xl overflow-hidden shadow-md">
           <Image
@@ -429,9 +428,8 @@ function FAQSection({ faqs }: { faqs: IPageSection["faqs"] }) {
                 {faq.question}
               </span>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-                  isOpen ? "transform rotate-180 text-primary" : ""
-                }`}
+                className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "transform rotate-180 text-primary" : ""
+                  }`}
               />
             </button>
 
