@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, Phone, MapPin, ChevronDown } from "lucide-react";
 import Image from "next/image";
+import AndroidDownloadButton from "./AndroidDownloadButton";
 
 interface PageItem {
   _id: string;
@@ -38,7 +39,7 @@ export default function Footer({
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-3">
@@ -232,6 +233,24 @@ export default function Footer({
                 </li>
               )}
             </ul>
+          </div>
+
+          {/* Get Our App */}
+          <div>
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+              Get Our App
+            </h4>
+            <p className="text-xs text-gray-400 leading-relaxed mb-4">
+              Stay updated on the go. Download our Android app for instant news access.
+            </p>
+            <AndroidDownloadButton />
+            <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
+              <span
+                className="inline-block w-2 h-2 rounded-full"
+                style={{ background: "#3DDC84" }}
+              />
+              Free · Direct download
+            </p>
           </div>
         </div>
       </div>
