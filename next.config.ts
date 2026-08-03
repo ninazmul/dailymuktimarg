@@ -10,6 +10,24 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.ufs.sh", port: "" },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Match any .apk file served from the public directory
+        source: "/:file*.apk",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/vnd.android.package-archive",
+          },
+          {
+            key: "Content-Disposition",
+            value: "attachment",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
