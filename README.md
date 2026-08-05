@@ -1,4 +1,4 @@
-# 📰 Daily Muktimarg (দৈনিক মুক্তি মার্গ)
+# 📰 Daily Muktimarg (দৈনিক মুক্তিমার্গ)
 
 ![Daily Muktimarg Platform](/public/assets/images/logo.png)
 
