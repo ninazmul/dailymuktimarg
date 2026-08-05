@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail, Phone, MapPin, ChevronDown } from "lucide-react";
 import Image from "next/image";
-import AndroidDownloadButton from "./AndroidDownloadButton";
+import { FaAndroid } from "react-icons/fa6";
 
 interface PageItem {
   _id: string;
@@ -188,7 +188,9 @@ export default function Footer({
               {children
                 .filter(
                   (c) =>
-                    !parents.some((p) => p._id.toString() === c.parentId?.toString()),
+                    !parents.some(
+                      (p) => p._id.toString() === c.parentId?.toString(),
+                    ),
                 )
                 .map((orphan) => (
                   <li key={orphan._id}>
@@ -241,9 +243,32 @@ export default function Footer({
               Get Our App
             </h4>
             <p className="text-xs text-gray-400 leading-relaxed mb-4">
-              Stay updated on the go. Download our Android app for instant news access.
+              Stay updated on the go. Download our Android app for instant news
+              access.
             </p>
-            <AndroidDownloadButton />
+            <a
+              href="/dailymuktimarg.apk"
+              download="DailyMuktimarg.apk"
+              className="group inline-flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
+              style={{
+                background: "#0d1117",
+                border: "1px solid rgba(61,220,132,0.3)",
+              }}
+            >
+              <FaAndroid
+                size={30}
+                style={{ color: "#3DDC84", transition: "transform 0.2s" }}
+                className="group-hover:scale-110 transition-transform duration-200"
+              />
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-widest text-gray-400">
+                  Get it on
+                </span>
+                <span className="text-[15px] font-bold text-white leading-tight">
+                  Android APK
+                </span>
+              </div>
+            </a>
             <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
               <span
                 className="inline-block w-2 h-2 rounded-full"
