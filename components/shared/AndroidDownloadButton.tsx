@@ -6,7 +6,9 @@ export default function AndroidDownloadButton() {
   return (
     <a
       href="/dailymuktimarg.apk"
-      download="Daily Muktimarg.apk"
+      download="dailymuktimarg.apk"
+      target="_blank"
+      rel="noopener noreferrer"
       className="group inline-flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
       style={{
         background: "#0d1117",

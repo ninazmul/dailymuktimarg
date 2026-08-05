@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Disposition",
-            value: "attachment",
+            value: 'attachment; filename="dailymuktimarg.apk"',
           },
         ],
       },
