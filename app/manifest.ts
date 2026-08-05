@@ -29,7 +29,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       {
         src: favicon,
         sizes: "64x64",
-        type: "image/svg+xml",
+        type: "image/x-icon",
         purpose: "any",
       },
       {
