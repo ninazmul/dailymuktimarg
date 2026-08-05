@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   await connectToDatabase();
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dailymuktimarg.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "https://dailymuktimarg.com";
   const siteName = "Daily Muktimarg";
 
   const articles = await News.find({ status: "published" })
@@ -45,7 +46,8 @@ export async function GET() {
   return new NextResponse(rss, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=600",
+      "Cache-Control":
+        "public, max-age=3600, s-maxage=3600, stale-while-revalidate=600",
     },
   });
 }

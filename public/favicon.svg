@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e8555"/>
+      <stop offset="100%" stop-color="#226B3A"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <text x="32" y="40" text-anchor="middle" font-family="SolaimanLipi, Vrinda, Kalpurush, 'Noto Sans Bengali', sans-serif" font-size="26" font-weight="700" fill="#ffffff">মু</text>
+  <circle cx="48" cy="18" r="7" fill="#ffffff" opacity="0.92"/>
+  <circle cx="48" cy="18" r="4" fill="#226B3A"/>
+</svg>

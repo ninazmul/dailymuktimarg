@@ -11,9 +11,47 @@ import Ad from "@/components/shared/Ad";
 import AdCarousel from "@/components/shared/AdCarousel";
 import Link from "next/link";
 import Image from "next/image";
-
+import type { Metadata } from "next";
+import { buildRobots, getSeoInfo, toAbsoluteUrl, SEO_DEFAULTS } from "@/lib/seo";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoInfo();
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
+  return {
+    title: seo.siteTitle,
+    description: seo.siteDescription,
+    keywords: seo.siteKeywords,
+    alternates: {
+      canonical: "/",
+    },
+    robots: buildRobots(),
+    openGraph: {
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      url: seo.canonicalUrlBase,
+      siteName: "দৈনিক মুক্তিমার্গ",
+      locale: "bn_BD",
+      type: "website",
+      images: absoluteOg
+        ? [{ url: absoluteOg, width: 1200, height: 630, alt: seo.siteBrand }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.twitterCardTitle,
+      description: seo.twitterCardDescription,
+      images: seo.twitterCardImage
+        ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
+            Boolean,
+          ) as string[])
+        : undefined,
+      creator: "@dailymuktimarg",
+      site: "@dailymuktimarg",
+    },
+  };
+}
 
 const ARTICLE_CARD_FIELDS =
   "title slug summary featuredImage categoryId publishDate views leadPosition gallery video featured trending breaking";
@@ -66,8 +104,6 @@ export default async function HomePage() {
     .sort({ views: -1 })
     .limit(5)
     .lean();
-
-
 
   // Pre-fetch articles for each section
   const sectionData = await Promise.all(
@@ -192,10 +228,10 @@ export default async function HomePage() {
   const safeGalleries = JSON.parse(JSON.stringify(galleryResult.items));
 
   const mainSectionData = sectionData.filter(
-    (item) => item.section.layoutType !== "sidebar"
+    (item) => item.section.layoutType !== "sidebar",
   );
   const sidebarSectionData = sectionData.filter(
-    (item) => item.section.layoutType === "sidebar"
+    (item) => item.section.layoutType === "sidebar",
   );
 
   // Function to find an ad for a specific section's adPlacement
@@ -204,8 +240,66 @@ export default async function HomePage() {
     return activeAds.find((ad) => ad.placement === placement);
   };
 
+  const canonicalBase = SEO_DEFAULTS.canonicalUrlBase;
+  const brand = SEO_DEFAULTS.siteBrand;
+
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${canonicalBase}/#website`,
+    url: canonicalBase,
+    name: brand,
+    description: SEO_DEFAULTS.siteDescription,
+    inLanguage: "bn-BD",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${canonicalBase}/search?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const organizationLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${canonicalBase}/#organization`,
+    name: brand,
+    url: canonicalBase,
+    logo: {
+      "@type": "ImageObject",
+      url: `${canonicalBase}/assets/images/logo.png`,
+    },
+    sameAs: [
+      "https://www.facebook.com/dailymuktimarg",
+      "https://twitter.com/dailymuktimarg",
+    ],
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${canonicalBase}/#breadcrumb`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: brand, item: canonicalBase },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 w-full overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <div className="flex flex-col lg:flex-row gap-8 min-w-0 items-start">
         {/* Main Content — All sections stacked, fills left side */}
         <div className="flex-1 min-w-0 space-y-8">
@@ -309,7 +403,9 @@ export default async function HomePage() {
                     </h4>
                     {article.publishDate && (
                       <p className="text-[10px] text-gray-400">
-                        {new Date(article.publishDate).toLocaleDateString("bn-BD")}
+                        {new Date(article.publishDate).toLocaleDateString(
+                          "bn-BD",
+                        )}
                       </p>
                     )}
                   </div>
@@ -317,9 +413,6 @@ export default async function HomePage() {
               ))}
             </section>
           )}
-
-
-
 
           {/* Dynamic Main Sections */}
           {mainSectionData.map(({ section, articles }, index) => (
@@ -361,7 +454,10 @@ export default async function HomePage() {
         </div>
 
         {/* Sidebar — h-fit so it only takes as much height as content needs */}
-        {(sidebarAds.length > 0 || sidebarSectionData.length > 0 || safeLatest.length > 0 || safeMostViewed.length > 0) && (
+        {(sidebarAds.length > 0 ||
+          sidebarSectionData.length > 0 ||
+          safeLatest.length > 0 ||
+          safeMostViewed.length > 0) && (
           <div className="w-full lg:w-80 flex-shrink-0 space-y-6 h-fit">
             {/* Advertisements */}
             {sidebarAds.map((ad) => (

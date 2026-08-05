@@ -7,6 +7,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
+import {
+  SEO_DEFAULTS,
+  buildPageTitle,
+  buildRobots,
+  getSeoInfo,
+  toAbsoluteUrl,
+} from "@/lib/seo";
 
 const ARTICLE_CARD_FIELDS =
   "title slug summary featuredImage categoryId publishDate";
@@ -19,13 +26,53 @@ interface PageProps {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  await connectToDatabase();
+  const [{ slug }, seo, _db] = await Promise.all([
+    params,
+    getSeoInfo(),
+    connectToDatabase(),
+  ]);
   const cat = await Category.findOne({ slug }).lean<any>();
-  if (!cat) return { title: "Category Not Found" };
+  if (!cat) {
+    return {
+      title: buildPageTitle("ক্যাটাগরি পাওয়া যায়নি", seo.siteBrand),
+      robots: buildRobots({ index: false }),
+    };
+  }
+  const pageTitle = cat.name;
+  const desc =
+    cat.description ||
+    `${cat.name} বিভাগের সকল সংবাদ, আপডেট এবং প্রতিবেদন। ${seo.siteBrand}।`;
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
   return {
-    title: `${cat.name} | Daily Muktimarg`,
-    description: `Browse all ${cat.name} news articles.`,
+    title: pageTitle,
+    description: desc,
+    alternates: {
+      canonical: `/category/${cat.slug}`,
+    },
+    robots: buildRobots(),
+    openGraph: {
+      title: buildPageTitle(pageTitle, seo.siteBrand),
+      description: desc,
+      url: `${seo.canonicalUrlBase}/category/${cat.slug}`,
+      siteName: seo.siteBrand,
+      locale: "bn_BD",
+      type: "website",
+      images: absoluteOg
+        ? [{ url: absoluteOg, width: 1200, height: 630, alt: pageTitle }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: buildPageTitle(pageTitle, seo.siteBrand),
+      description: desc,
+      images: seo.twitterCardImage
+        ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
+            Boolean,
+          ) as string[])
+        : undefined,
+      creator: "@dailymuktimarg",
+      site: "@dailymuktimarg",
+    },
   };
 }
 
@@ -78,16 +125,97 @@ export default async function CategoryPage({
     (d) => d.parentId?.toString() === category._id.toString(),
   );
 
+  // Build ancestor chain by walking up parentId
+  const ancestors: any[] = [];
+  if (category.parentId) {
+    let current = await Category.findById(category.parentId).lean<any>();
+    while (current) {
+      ancestors.push(current);
+      if (current.parentId) {
+        current = await Category.findById(current.parentId).lean<any>();
+      } else {
+        current = null;
+      }
+    }
+  }
+
+  const canonicalBase =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    SEO_DEFAULTS.canonicalUrlBase;
+  const brand = SEO_DEFAULTS.siteBrand;
+  const categoryUrl = `${canonicalBase}/category/${category.slug}`;
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${categoryUrl}#breadcrumb`,
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: brand,
+        item: canonicalBase,
+      },
+      ...(ancestors || []).reverse().map((a: any, idx: number) => ({
+        "@type": "ListItem" as const,
+        position: idx + 2,
+        name: a.name,
+        item: `${canonicalBase}/category/${a.slug}`,
+      })),
+      {
+        "@type": "ListItem",
+        position: (ancestors?.length || 0) + 2,
+        name: category.name,
+        item: categoryUrl,
+      },
+    ],
+  };
+
+  const collectionLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": categoryUrl,
+    name: category.name,
+    description:
+      category.description ||
+      `${category.name} বিভাগের সকল সংবাদ, আপডেট এবং প্রতিবেদন।`,
+    inLanguage: "bn-BD",
+    url: categoryUrl,
+    isPartOf: { "@id": `${canonicalBase}/#website` },
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-gray-500 mb-6">
             <Link href="/" className="hover:text-primary">
-              Home
+              {brand}
             </Link>
             <span>/</span>
+            {(ancestors || [])
+              .slice()
+              .reverse()
+              .map((a: any) => (
+                <span key={a._id} className="flex items-center gap-2">
+                  <Link
+                    href={`/category/${a.slug}`}
+                    className="hover:text-primary"
+                  >
+                    {a.name}
+                  </Link>
+                  <span>/</span>
+                </span>
+              ))}
             <span className="text-gray-800 font-semibold">{category.name}</span>
           </nav>
 

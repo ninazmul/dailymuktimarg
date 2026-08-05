@@ -2,28 +2,92 @@ import { getGalleries } from "@/lib/actions/gallery.actions";
 import Link from "next/link";
 import Image from "next/image";
 import { Camera, Images, Calendar, ArrowRight } from "lucide-react";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import {
+  SEO_DEFAULTS,
+  buildRobots,
+  getSeoInfo,
+  toAbsoluteUrl,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "ফটো গ্যালারি | Gallery - Daily Muktimarg",
-  description: "Browse latest photo stories, event galleries, and photo albums on Daily Muktimarg.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoInfo();
+  const pageTitle = "ক্লিকস্মৃতি ও চিত্র অ্যালবাম";
+  const pageSubtitle = "ফটো গ্যালারি";
+  const desc =
+    "সংবাদ ও সাম্প্রতিক ঘটনাবলীর সেরা সব আলোকচিত্র, ইভেন্ট গ্যালারি এবং ফটো অ্যালবাম।";
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
+  return {
+    title: pageSubtitle,
+    description: desc,
+    alternates: {
+      canonical: "/gallery",
+    },
+    robots: buildRobots(),
+    openGraph: {
+      title: `${pageTitle} | ${seo.siteBrand}`,
+      description: desc,
+      url: `${seo.canonicalUrlBase}/gallery`,
+      siteName: seo.siteBrand,
+      locale: "bn_BD",
+      type: "website",
+      images: absoluteOg
+        ? [{ url: absoluteOg, width: 1200, height: 630, alt: pageTitle }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${pageTitle} | ${seo.siteBrand}`,
+      description: desc,
+      images: seo.twitterCardImage
+        ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
+            Boolean,
+          ) as string[])
+        : undefined,
+      creator: "@dailymuktimarg",
+      site: "@dailymuktimarg",
+    },
+  };
+}
 
 export default async function GalleryListPage() {
   const result = await getGalleries({ status: "published", limit: 30 });
   const galleries = result.items;
 
+  const canonicalBase =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    SEO_DEFAULTS.canonicalUrlBase;
+  const brand = SEO_DEFAULTS.siteBrand;
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${canonicalBase}/gallery#breadcrumb`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: brand, item: canonicalBase },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "ফটো গ্যালারি",
+        item: `${canonicalBase}/gallery`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Breadcrumb Banner */}
         <div className="bg-gradient-to-r from-gray-900 via-slate-900 to-gray-900 text-white rounded-2xl p-6 sm:p-10 shadow-lg border border-gray-800">
           <div className="flex items-center gap-2 text-xs font-semibold text-primary/80 uppercase tracking-wider mb-2">
             <Link href="/" className="hover:underline text-gray-300">
-              Home
+              {brand}
             </Link>
             <span>/</span>
-            <span className="text-primary">Gallery</span>
+            <span className="text-primary">ফটো গ্যালারি</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
@@ -31,7 +95,8 @@ export default async function GalleryListPage() {
             ক্লিকস্মৃতি ও চিত্র অ্যালবাম
           </h1>
           <p className="text-gray-400 text-sm sm:text-base mt-2 max-w-2xl">
-            সংবাদ ও সাম্প্রতিক ঘটনাবলীর সেরা সব আলোকচিত্র এবং ফটো অ্যালবামগুলো একসাথে দেখুন।
+            সংবাদ ও সাম্প্রতিক ঘটনাবলীর সেরা সব আলোকচিত্র এবং ফটো অ্যালবামগুলো
+            একসাথে দেখুন।
           </p>
         </div>
 
@@ -39,13 +104,19 @@ export default async function GalleryListPage() {
         {galleries.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center text-gray-500 border">
             <Images className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-gray-700">কোনো ফটো গ্যালারি পাওয়া যায়নি</h3>
-            <p className="text-sm mt-1">শীঘ্রই নতুন ফটো অ্যালবাম প্রকাশিত হবে।</p>
+            <h3 className="text-lg font-bold text-gray-700">
+              কোনো ফটো গ্যালারি পাওয়া যায়নি
+            </h3>
+            <p className="text-sm mt-1">
+              শীঘ্রই নতুন ফটো অ্যালবাম প্রকাশিত হবে।
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {galleries.map((album) => {
-              const totalCount = (album.secondaryPhotos?.length || 0) + (album.mainImage ? 1 : 0);
+              const totalCount =
+                (album.secondaryPhotos?.length || 0) +
+                (album.mainImage ? 1 : 0);
 
               return (
                 <Link
@@ -81,7 +152,9 @@ export default async function GalleryListPage() {
                         {album.title}
                       </h2>
                       {album.subtitle && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{album.subtitle}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {album.subtitle}
+                        </p>
                       )}
                     </div>
                   </div>

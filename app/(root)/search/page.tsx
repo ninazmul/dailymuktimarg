@@ -6,8 +6,76 @@ import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+import {
+  buildPageTitle,
+  buildRobots,
+  getSeoInfo,
+  toAbsoluteUrl,
+  SEO_DEFAULTS,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+interface SearchPageProps {
+  searchParams?: Promise<{
+    q?: string;
+    category?: string;
+    tag?: string;
+    page?: string;
+  }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const resolved = (await searchParams) ?? {} as { q?: string; category?: string; tag?: string; page?: string };
+  const seo = await getSeoInfo();
+  const query = (resolved.q || "").trim();
+  const cat = (resolved.category || "").trim();
+  const tag = (resolved.tag || "").trim();
+
+  let pageTitle = "খুঁজুন";
+  let desc = `${seo.siteBrand}-এ সংবাদ, ক্যাটাগরি ও ট্যাগ অনুসন্ধান করুন।`;
+  if (query) {
+    pageTitle = `"${query}" - অনুসন্ধান ফলাফল`;
+    desc = `"${query}" খুঁজে পাওয়া সংবাদ ও প্রতিবেদন।`;
+  } else if (cat) {
+    pageTitle = `ক্যাটাগরি: ${cat}`;
+    desc = `${cat} ক্যাটাগরির সকল সংবাদ।`;
+  } else if (tag) {
+    pageTitle = `ট্যাগ: #${tag}`;
+    desc = `#${tag} ট্যাগযুক্ত সকল সংবাদ।`;
+  }
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
+  return {
+    title: pageTitle,
+    description: desc,
+    alternates: {
+      canonical: "/search",
+    },
+    robots: buildRobots({ index: !!(query || cat || tag), follow: false }),
+    openGraph: {
+      title: buildPageTitle(pageTitle, seo.siteBrand),
+      description: desc,
+      url: seo.canonicalUrlBase + "/search",
+      siteName: seo.siteBrand,
+      locale: "bn_BD",
+      type: "website",
+      images: absoluteOg
+        ? [{ url: absoluteOg, width: 1200, height: 630, alt: pageTitle }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: buildPageTitle(pageTitle, seo.siteBrand),
+      description: desc,
+      images: absoluteOg ? [absoluteOg] : undefined,
+      creator: "@dailymuktimarg",
+      site: "@dailymuktimarg",
+    },
+  };
+}
 
 const ARTICLE_CARD_FIELDS =
   "title slug summary featuredImage categoryId publishDate";
@@ -78,8 +146,29 @@ export default async function SearchPage({
   const totalPages = Math.ceil(totalCount / limit);
   const safeArticles = JSON.parse(JSON.stringify(articles));
 
+  const canonicalBase = SEO_DEFAULTS.canonicalUrlBase;
+  const brand = SEO_DEFAULTS.siteBrand;
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${canonicalBase}/search#breadcrumb`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: brand, item: canonicalBase },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "অনুসন্ধান",
+        item: `${canonicalBase}/search`,
+      },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <h1 className="text-3xl font-black text-gray-800 border-l-4 border-primary pl-4 mb-8">
         Search Archive
       </h1>

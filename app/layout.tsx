@@ -1,11 +1,16 @@
-import { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, DM_Serif_Display } from "next/font/google";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
-import { getSetting } from "@/lib/actions/setting.actions";
+import {
+  SEO_DEFAULTS,
+  buildRobots,
+  getSeoInfo,
+  toAbsoluteUrl,
+} from "@/lib/seo";
 
 import "./globals.css";
 
@@ -32,44 +37,97 @@ const solaimanLipi = localFont({
   variable: "--font-bengali",
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const setting = await getSetting();
-  
-  const defaultTitle = "Daily Muktimarg | অন্যতম প্রধান অনলাইন সংবাদ মাধ্যম";
-  const defaultDescription = "বাংলাদেশের অন্যতম প্রধান অনলাইন সংবাদ মাধ্যম। সর্বশেষ খবর, বিশ্লেষণ এবং মতামত।";
-  const defaultKeywords = ["অনলাইন খবর", "বাংলাদেশ খবর", "Muktimarg", "Daily Muktimarg", "সংবাদ"];
-  const defaultUrl = "https://dailymuktimarg.com";
-  const defaultImage = "https://dailymuktimarg.com/assets/images/placeholder.webp";
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F172A" },
+  ],
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+};
 
-  const seo = setting?.seo || {};
-  const metadataBase = seo.canonicalUrlBase ? new URL(seo.canonicalUrlBase) : new URL(defaultUrl);
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoInfo();
+  const metadataBase = new URL(seo.canonicalUrlBase);
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
+  const absoluteTwitter = toAbsoluteUrl(
+    seo.twitterCardImage,
+    seo.canonicalUrlBase,
+  );
+  const absoluteLogoPng = toAbsoluteUrl(
+    "/assets/images/logo.png",
+    seo.canonicalUrlBase,
+  );
+  const appleIcon = toAbsoluteUrl(
+    "/assets/icons/apple-touch-icon.svg",
+    seo.canonicalUrlBase,
+  );
 
   return {
-    title: seo.siteTitle || defaultTitle,
-    description: seo.siteMetaDescription || defaultDescription,
-    keywords: seo.siteKeywords?.length ? seo.siteKeywords : defaultKeywords,
     metadataBase,
-    icons: {
-      icon: "./favicon.ico",
-      shortcut: "./favicon.ico",
-      apple: "/assets/images/placeholder.webp",
+    title: {
+      default: seo.siteTitle,
+      template: `%s | ${seo.siteBrand}`,
+      absolute: seo.siteTitle,
     },
+    description: seo.siteDescription,
+    keywords: seo.siteKeywords,
+    applicationName: SEO_DEFAULTS.siteName,
+    authors: [...SEO_DEFAULTS.authors],
+    creator: SEO_DEFAULTS.siteName,
+    publisher: SEO_DEFAULTS.publisher,
+    category: SEO_DEFAULTS.category,
     alternates: {
-      canonical: seo.canonicalUrlBase || defaultUrl,
+      canonical: "/",
+      languages: { "bn-BD": "/" },
+    },
+    icons: {
+      icon: [{ url: "/favicon.ico", sizes: "any", type: "image/svg+xml" }],
+      shortcut: "/favicon.ico",
+      apple: appleIcon
+        ? [{ url: appleIcon, type: "image/svg+xml", sizes: "180x180" }]
+        : undefined,
+      other: absoluteLogoPng
+        ? [{ rel: "apple-touch-icon-precomposed", url: absoluteLogoPng }]
+        : undefined,
+    },
+    manifest: "/manifest.webmanifest",
+    robots: buildRobots(),
+    verification: seo.googleSearchConsoleVerification
+      ? { google: seo.googleSearchConsoleVerification }
+      : undefined,
+    formatDetection: {
+      telephone: false,
+      address: false,
+      email: false,
     },
     openGraph: {
-      title: seo.ogTitle || seo.siteTitle || defaultTitle,
-      description: seo.ogDescription || seo.siteMetaDescription || defaultDescription,
-      url: seo.canonicalUrlBase || defaultUrl,
-      siteName: "Daily Muktimarg",
-      images: seo.ogImage ? [{ url: seo.ogImage, width: 1200, height: 630, alt: "Daily Muktimarg" }] : [{ url: defaultImage, width: 1200, height: 630, alt: "Daily Muktimarg" }],
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      url: seo.canonicalUrlBase,
+      siteName: SEO_DEFAULTS.siteName,
+      locale: SEO_DEFAULTS.locale,
       type: "website",
+      images: absoluteOg
+        ? [
+            {
+              url: absoluteOg,
+              width: SEO_DEFAULTS.ogImageWidth,
+              height: SEO_DEFAULTS.ogImageHeight,
+              alt: seo.siteBrand,
+              type: "image/webp",
+            },
+          ]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: seo.twitterCardTitle || seo.ogTitle || seo.siteTitle || defaultTitle,
-      description: seo.twitterCardDescription || seo.ogDescription || seo.siteMetaDescription || defaultDescription,
-      images: seo.twitterCardImage ? [seo.twitterCardImage] : [defaultImage],
+      title: seo.twitterCardTitle,
+      description: seo.twitterCardDescription,
+      images: absoluteTwitter ? [absoluteTwitter] : undefined,
+      creator: "@dailymuktimarg",
+      site: "@dailymuktimarg",
     },
   };
 }

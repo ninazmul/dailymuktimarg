@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e8555"/>
+      <stop offset="100%" stop-color="#226B3A"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#g)"/>
+  <text x="90" y="112" text-anchor="middle" font-family="SolaimanLipi, Vrinda, Kalpurush, 'Noto Sans Bengali', sans-serif" font-size="74" font-weight="800" fill="#ffffff">মুক্তি</text>
+  <circle cx="140" cy="44" r="20" fill="#ffffff" opacity="0.92"/>
+  <circle cx="140" cy="44" r="12" fill="#226B3A"/>
+</svg>

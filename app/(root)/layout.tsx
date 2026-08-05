@@ -10,8 +10,13 @@ import BreakingTicker from "@/components/shared/BreakingTicker";
 import Ad from "@/components/shared/Ad";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import Script from "next/script";
+import { SEO_DEFAULTS, getSeoInfo, toAbsoluteUrl } from "@/lib/seo";
 
 export const revalidate = 120;
+
+function buildJsonLd<T>(obj: T) {
+  return JSON.stringify(obj, null, 0);
+}
 
 export default async function PublicLayout({
   children,
@@ -49,10 +54,89 @@ export default async function PublicLayout({
       : (setting.socialLinks as unknown as Record<string, string>)
     : {};
 
-  const seo = setting?.seo || {};
+  const seo: Record<string, any> = setting?.seo || {};
+
+  const publicSeo = await getSeoInfo().catch(() => null);
+  const canonicalBase =
+    publicSeo?.canonicalUrlBase ||
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    SEO_DEFAULTS.canonicalUrlBase;
+  const siteLogoUrl = toAbsoluteUrl("/assets/images/logo.webp", canonicalBase);
+  const orgName = publicSeo?.siteBrand || SEO_DEFAULTS.siteBrand;
+  const orgNameEnglish = "Daily Muktimarg";
+  const social =
+    setting?.socialLinks && !(setting.socialLinks instanceof Map)
+      ? (setting.socialLinks as unknown as Record<string, string | undefined>)
+      : {};
+  const sameAsLinks = Object.values(social).filter(
+    (u): u is string => typeof u === "string" && u.length > 0,
+  );
+  const potentialSearchTarget = `${canonicalBase}/search?q={search_term_string}`;
+
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${canonicalBase}/#website`,
+    name: orgName,
+    alternateName: orgNameEnglish,
+    inLanguage: "bn-BD",
+    url: `${canonicalBase}/`,
+    description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
+    publisher: { "@id": `${canonicalBase}/#organization` },
+    potentialAction: [
+      {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: potentialSearchTarget,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    ],
+  };
+
+  const organizationLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsMediaOrganization",
+    "@id": `${canonicalBase}/#organization`,
+    name: orgName,
+    alternateName: orgNameEnglish,
+    legalName: orgNameEnglish,
+    description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
+    url: `${canonicalBase}/`,
+    email: seo.contactEmail || seo.supportEmail || undefined,
+    telephone: seo.phoneNumber || undefined,
+    address: seo.organizationAddress || undefined,
+    foundingDate: seo.establishmentDate || undefined,
+    logo: siteLogoUrl
+      ? {
+          "@type": "ImageObject",
+          url: siteLogoUrl,
+          width: 512,
+          height: 512,
+        }
+      : undefined,
+    image: siteLogoUrl || undefined,
+    sameAs: sameAsLinks.length ? sameAsLinks : undefined,
+    sameAsLinks: undefined as unknown as undefined,
+    knowsLanguage: ["bn", "en"],
+    ethicsPolicy: seo.ethicsPolicyUrl || undefined,
+    masthead: seo.mastheadUrl || undefined,
+    correctionsPolicy: seo.correctionsPolicyUrl || undefined,
+    diversityPolicy: seo.diversityPolicyUrl || undefined,
+  };
+  delete (organizationLd as any).sameAsLinks;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 max-w-full overflow-x-hidden">
+      <Script
+        id="ld-website-organization"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: buildJsonLd(websiteLd) + "\n" + buildJsonLd(organizationLd),
+        }}
+      />
       {/* Google Analytics */}
       {seo.googleAnalyticsId && (
         <>
