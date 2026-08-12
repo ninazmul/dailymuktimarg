@@ -104,9 +104,9 @@ export default async function PublicLayout({
     legalName: orgNameEnglish,
     description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
     url: `${canonicalBase}/`,
-    email: seo.contactEmail || seo.supportEmail || undefined,
-    telephone: seo.phoneNumber || undefined,
-    address: seo.organizationAddress || undefined,
+    email: setting?.contactEmail || undefined,
+    telephone: setting?.phoneNumber || undefined,
+    address: setting?.address || undefined,
     foundingDate: seo.establishmentDate || undefined,
     logo: siteLogoUrl
       ? {

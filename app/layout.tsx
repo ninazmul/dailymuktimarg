@@ -116,7 +116,6 @@ export async function generateMetadata(): Promise<Metadata> {
               width: SEO_DEFAULTS.ogImageWidth,
               height: SEO_DEFAULTS.ogImageHeight,
               alt: seo.siteBrand,
-              type: "image/webp",
             },
           ]
         : undefined,
