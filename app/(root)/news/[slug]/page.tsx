@@ -39,7 +39,7 @@ export async function generateMetadata({
 
   const pageTitle = article.seoTitle || article.title;
   const description =
-    article.seoDescription || article.summary || article.title;
+    article.metaDescription || article.summary || article.title;
   const articleUrl = `${seoRes.canonicalUrlBase}/news/${article.slug}`;
   const absoluteFeatured = toAbsoluteUrl(
     article.featuredImage,
@@ -176,7 +176,7 @@ export default async function ArticlePage({ params }: PageProps) {
       article.seoTitle && article.seoTitle !== article.title
         ? article.title
         : undefined,
-    description: article.seoDescription || article.summary || article.title,
+    description: article.metaDescription || article.summary || article.title,
     inLanguage: "bn-BD",
     wordCount:
       typeof article.content === "string"

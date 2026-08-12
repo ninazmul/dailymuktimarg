@@ -98,7 +98,7 @@ export default async function DynamicPage({ params }: PageProps) {
   if (!pageDoc) notFound();
 
   const canonicalBase =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
     SEO_DEFAULTS.canonicalUrlBase;
   const brand = SEO_DEFAULTS.siteBrand;
   const slugPath = slug.join("/");

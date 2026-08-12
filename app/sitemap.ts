@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
-    "https://dailymuktimarg.com";
+    "https://www.dailymuktimarg.com";
 
   const articles = await News.find({ status: "published" })
     .select("slug updatedAt publishDate")
@@ -39,7 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ? 0.9
         : 0.6,
     alternates: {
-      languages: { "bn-BD": `${baseUrl}/news/${article.slug}` },
+      languages: {
+        "bn-BD": `${baseUrl}/news/${article.slug}`,
+        "en": `${baseUrl}/news/${article.slug}`,
+      },
     },
   }));
 
@@ -52,7 +55,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "daily" as const,
     priority: 0.8,
     alternates: {
-      languages: { "bn-BD": `${baseUrl}/category/${cat.slug}` },
+      languages: {
+        "bn-BD": `${baseUrl}/category/${cat.slug}`,
+        "en": `${baseUrl}/category/${cat.slug}`,
+      },
     },
   }));
 
@@ -91,7 +97,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "always" as const,
       priority: 0.95,
-      alternates: { languages: { "bn-BD": `${baseUrl}/todays-news` } },
+      alternates: {
+        languages: {
+          "bn-BD": `${baseUrl}/todays-news`,
+          "en": `${baseUrl}/todays-news`,
+        },
+      },
+    },
+    {
+      url: `${baseUrl}/search`,
+      lastModified: new Date(),
+      changeFrequency: "always" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          "bn-BD": `${baseUrl}/search`,
+          "en": `${baseUrl}/search`,
+        },
+      },
     },
   ];
 
@@ -101,7 +124,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "always" as const,
       priority: 1.0,
-      alternates: { languages: { "bn-BD": baseUrl } },
+      alternates: {
+        languages: {
+          "bn-BD": baseUrl,
+          "en": baseUrl,
+          "x-default": baseUrl,
+        },
+      },
     },
     ...staticExtras,
     galleryListUrl,

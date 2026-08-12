@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    "https://dailymuktimarg.com";
+    "https://www.dailymuktimarg.com";
 
   return {
     rules: [
@@ -18,8 +19,9 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [],
       },
       {
+        // Explicit Googlebot-News rules to ensure full news coverage
         userAgent: "Googlebot-News",
-        allow: ["/", "/news/", "/category/", "/gallery/"],
+        allow: ["/", "/news/", "/category/", "/gallery/", "/todays-news"],
         disallow: ["/dashboard/"],
       },
       {

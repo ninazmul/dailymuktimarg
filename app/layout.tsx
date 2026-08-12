@@ -14,6 +14,10 @@ import {
 
 import "./globals.css";
 
+// Revalidate root layout metadata every 30 seconds so admin SEO changes
+// appear quickly without needing a redeploy.
+export const revalidate = 30;
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -49,65 +53,92 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoInfo();
-  const metadataBase = new URL(seo.canonicalUrlBase);
-  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
-  const absoluteTwitter = toAbsoluteUrl(
-    seo.twitterCardImage,
-    seo.canonicalUrlBase,
-  );
-  const absoluteLogoPng = toAbsoluteUrl(
-    "/assets/images/logo.png",
-    seo.canonicalUrlBase,
-  );
-  const appleIcon = toAbsoluteUrl(
-    "/assets/icons/apple-touch-icon.svg",
-    seo.canonicalUrlBase,
-  );
+  const base = seo.canonicalUrlBase;
+  const metadataBase = new URL(base);
+
+  // Resolve all image URLs to absolute — required for social crawlers.
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, base);
+  const absoluteTwitter = toAbsoluteUrl(seo.twitterCardImage, base);
+
+  // Icon assets — logo.png & logo.webp exist in /public/assets/images/
+  const logoPng = `${base}/assets/images/logo.png`;
 
   return {
     metadataBase,
+
+    // ─── Title ────────────────────────────────────────────────────────────
     title: {
       default: seo.siteTitle,
       template: `%s | ${seo.siteBrand}`,
       absolute: seo.siteTitle,
     },
+
+    // ─── Basic meta ────────────────────────────────────────────────────────
     description: seo.siteDescription,
-    keywords: seo.siteKeywords,
+    keywords: seo.siteKeywords, // Bengali + English merged in getSeoInfo()
     applicationName: SEO_DEFAULTS.siteName,
     authors: [...SEO_DEFAULTS.authors],
     creator: SEO_DEFAULTS.siteName,
     publisher: SEO_DEFAULTS.publisher,
     category: SEO_DEFAULTS.category,
+
+    // ─── Canonical + bilingual hreflang ────────────────────────────────────
+    // x-default: catch-all URL when no language variant matches.
+    // en: signals English content exists (for bilingual ranking).
+    // bn-BD: primary Bengali audience.
     alternates: {
       canonical: "/",
-      languages: { "bn-BD": "/" },
+      languages: {
+        "x-default": `${base}/`,
+        "en": `${base}/`,
+        "bn-BD": `${base}/`,
+      },
     },
+
+    // ─── Favicon & PWA icons ───────────────────────────────────────────────
+    // Google Search picks the best favicon from these declarations.
+    // Prefer PNG with explicit pixel sizes over SVG for search result display.
     icons: {
-      icon: [{ url: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
+      icon: [
+        // favicon.ico — universal fallback (legacy browsers, Bing)
+        { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+        // PNG sizes for Google Search favicons and Rich Results
+        { url: logoPng, sizes: "32x32", type: "image/png" },
+        { url: logoPng, sizes: "192x192", type: "image/png" },
+        { url: logoPng, sizes: "512x512", type: "image/png" },
+      ],
       shortcut: "/favicon.ico",
-      apple: appleIcon
-        ? [{ url: appleIcon, type: "image/svg+xml", sizes: "180x180" }]
-        : undefined,
-      other: absoluteLogoPng
-        ? [{ rel: "apple-touch-icon-precomposed", url: absoluteLogoPng }]
-        : undefined,
+      // Apple touch icon for iOS home screen
+      apple: [{ url: logoPng, sizes: "180x180", type: "image/png" }],
+      // Supplemental signals for Google image index + share previews
+      other: [
+        { rel: "apple-touch-icon-precomposed", url: logoPng },
+        ...(absoluteOg ? [{ rel: "image_src", url: absoluteOg }] : []),
+      ],
     },
+
     manifest: "/manifest.webmanifest",
     robots: buildRobots(),
+
+    // ─── Google Search Console verification ───────────────────────────────
     verification: seo.googleSearchConsoleVerification
       ? { google: seo.googleSearchConsoleVerification }
       : undefined,
+
     formatDetection: {
       telephone: false,
       address: false,
       email: false,
     },
+
+    // ─── Open Graph ────────────────────────────────────────────────────────
     openGraph: {
       title: seo.ogTitle,
       description: seo.ogDescription,
-      url: seo.canonicalUrlBase,
+      url: base,
       siteName: SEO_DEFAULTS.siteName,
       locale: SEO_DEFAULTS.locale,
+      alternateLocale: ["en_US"], // bilingual signal for OG crawlers
       type: "website",
       images: absoluteOg
         ? [
@@ -120,6 +151,8 @@ export async function generateMetadata(): Promise<Metadata> {
           ]
         : undefined,
     },
+
+    // ─── Twitter / X Card ──────────────────────────────────────────────────
     twitter: {
       card: "summary_large_image",
       title: seo.twitterCardTitle,

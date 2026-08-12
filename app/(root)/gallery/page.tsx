@@ -41,8 +41,8 @@ export async function generateMetadata(): Promise<Metadata> {
       description: desc,
       images: seo.twitterCardImage
         ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
-            Boolean,
-          ) as string[])
+          Boolean,
+        ) as string[])
         : undefined,
       creator: "@dailymuktimarg",
       site: "@dailymuktimarg",
@@ -55,7 +55,7 @@ export default async function GalleryListPage() {
   const galleries = result.items;
 
   const canonicalBase =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
     SEO_DEFAULTS.canonicalUrlBase;
   const brand = SEO_DEFAULTS.siteBrand;
   const breadcrumbLd = {

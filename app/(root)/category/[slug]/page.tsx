@@ -67,8 +67,8 @@ export async function generateMetadata({
       description: desc,
       images: seo.twitterCardImage
         ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
-            Boolean,
-          ) as string[])
+          Boolean,
+        ) as string[])
         : undefined,
       creator: "@dailymuktimarg",
       site: "@dailymuktimarg",
@@ -147,7 +147,7 @@ export default async function CategoryPage({
   }
 
   const canonicalBase =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
     SEO_DEFAULTS.canonicalUrlBase;
   const brand = SEO_DEFAULTS.siteBrand;
   const categoryUrl = `${canonicalBase}/category/${category.slug}`;
@@ -268,11 +268,11 @@ export default async function CategoryPage({
                   <div className="p-4">
                     {(article.nestedCategoryId?.name ||
                       article.categoryId?.name) && (
-                      <span className="text-[10px] font-bold text-primary uppercase">
-                        {article.nestedCategoryId?.name ||
-                          article.categoryId.name}
-                      </span>
-                    )}
+                        <span className="text-[10px] font-bold text-primary uppercase">
+                          {article.nestedCategoryId?.name ||
+                            article.categoryId.name}
+                        </span>
+                      )}
                     <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
                       {article.title}
                     </h3>

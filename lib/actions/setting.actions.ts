@@ -65,6 +65,7 @@ export async function updateSetting(params: SettingFormParams): Promise<ISetting
       { upsert: true, new: true, lean: true },
     );
 
+    revalidatePath("/", "layout"); // bust root generateMetadata() cache immediately
     revalidatePath("/dashboard/settings");
     revalidatePath("/dashboard/todays-news");
     revalidatePath("/todays-news");

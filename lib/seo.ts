@@ -28,14 +28,22 @@ export async function getSeoInfo(): Promise<ResolvedSeo> {
     const canonicalUrlBase = (
       seo.canonicalUrlBase || SEO_DEFAULTS.canonicalUrlBase
     ).replace(/\/$/, "");
+
+    // Merge DB keywords with English core keywords so bilingual Google
+    // ranking signals are always present regardless of admin DB content.
+    const dbKeywords =
+      Array.isArray(seo.siteKeywords) && seo.siteKeywords.length > 0
+        ? [...seo.siteKeywords]
+        : [...SEO_DEFAULTS.siteKeywordsBn];
+    const siteKeywords = Array.from(
+      new Set([...dbKeywords, ...SEO_DEFAULTS.siteKeywordsEn]),
+    );
+
     return {
       siteTitle: seo.siteTitle || SEO_DEFAULTS.siteTitle,
       siteBrand: extractBrand(seo.siteTitle) || SEO_DEFAULTS.siteBrand,
       siteDescription: seo.siteMetaDescription || SEO_DEFAULTS.siteDescription,
-      siteKeywords:
-        Array.isArray(seo.siteKeywords) && seo.siteKeywords.length > 0
-          ? [...seo.siteKeywords]
-          : [...SEO_DEFAULTS.siteKeywords],
+      siteKeywords,
       canonicalUrlBase,
       ogTitle: seo.ogTitle || seo.siteTitle || SEO_DEFAULTS.siteTitle,
       ogDescription:
@@ -55,14 +63,15 @@ export async function getSeoInfo(): Promise<ResolvedSeo> {
         SEO_DEFAULTS.siteDescription,
       twitterCardImage: seo.twitterCardImage || SEO_DEFAULTS.twitterImage,
       googleAnalyticsId: seo.googleAnalyticsId || undefined,
-      googleSearchConsoleVerification: seo.googleSearchConsoleVerification || undefined,
+      googleSearchConsoleVerification:
+        seo.googleSearchConsoleVerification || undefined,
     };
   } catch {
     return {
       siteTitle: SEO_DEFAULTS.siteTitle,
       siteBrand: SEO_DEFAULTS.siteBrand,
       siteDescription: SEO_DEFAULTS.siteDescription,
-      siteKeywords: [...SEO_DEFAULTS.siteKeywords],
+      siteKeywords: SEO_DEFAULTS.siteKeywords,
       canonicalUrlBase: SEO_DEFAULTS.canonicalUrlBase,
       ogTitle: SEO_DEFAULTS.siteTitle,
       ogDescription: SEO_DEFAULTS.siteDescription,

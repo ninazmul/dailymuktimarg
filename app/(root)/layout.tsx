@@ -59,7 +59,7 @@ export default async function PublicLayout({
   const publicSeo = await getSeoInfo().catch(() => null);
   const canonicalBase =
     publicSeo?.canonicalUrlBase ||
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
     SEO_DEFAULTS.canonicalUrlBase;
   const siteLogoUrl = toAbsoluteUrl("/assets/images/logo.webp", canonicalBase);
   const orgName = publicSeo?.siteBrand || SEO_DEFAULTS.siteBrand;
@@ -110,11 +110,11 @@ export default async function PublicLayout({
     foundingDate: seo.establishmentDate || undefined,
     logo: siteLogoUrl
       ? {
-          "@type": "ImageObject",
-          url: siteLogoUrl,
-          width: 512,
-          height: 512,
-        }
+        "@type": "ImageObject",
+        url: siteLogoUrl,
+        width: 512,
+        height: 512,
+      }
       : undefined,
     image: siteLogoUrl || undefined,
     sameAs: sameAsLinks.length ? sameAsLinks : undefined,
