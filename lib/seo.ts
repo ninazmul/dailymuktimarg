@@ -62,7 +62,7 @@ export async function getSeoInfo(): Promise<ResolvedSeo> {
         seo.siteMetaDescription ||
         SEO_DEFAULTS.siteDescription,
       twitterCardImage: seo.twitterCardImage || SEO_DEFAULTS.twitterImage,
-      googleAnalyticsId: seo.googleAnalyticsId || undefined,
+      googleAnalyticsId: seo.googleAnalyticsId || SEO_DEFAULTS.googleAnalyticsId,
       googleSearchConsoleVerification:
         seo.googleSearchConsoleVerification || undefined,
     };
@@ -79,6 +79,7 @@ export async function getSeoInfo(): Promise<ResolvedSeo> {
       twitterCardTitle: SEO_DEFAULTS.siteTitle,
       twitterCardDescription: SEO_DEFAULTS.siteDescription,
       twitterCardImage: SEO_DEFAULTS.twitterImage,
+      googleAnalyticsId: SEO_DEFAULTS.googleAnalyticsId,
     };
   }
 }

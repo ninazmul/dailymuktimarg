@@ -137,11 +137,13 @@ export default async function PublicLayout({
           __html: buildJsonLd(websiteLd) + "\n" + buildJsonLd(organizationLd),
         }}
       />
-      {/* Google Analytics */}
-      {seo.googleAnalyticsId && (
+      {/* Google Analytics / Google Tag */}
+      {(publicSeo?.googleAnalyticsId || seo.googleAnalyticsId || SEO_DEFAULTS.googleAnalyticsId) && (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${seo.googleAnalyticsId}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${
+              publicSeo?.googleAnalyticsId || seo.googleAnalyticsId || SEO_DEFAULTS.googleAnalyticsId
+            }`}
             strategy="afterInteractive"
           />
           <Script id="google-analytics" strategy="afterInteractive">
@@ -149,7 +151,9 @@ export default async function PublicLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${seo.googleAnalyticsId}');
+              gtag('config', '${
+                publicSeo?.googleAnalyticsId || seo.googleAnalyticsId || SEO_DEFAULTS.googleAnalyticsId
+              }');
             `}
           </Script>
         </>

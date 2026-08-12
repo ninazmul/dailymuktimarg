@@ -45,6 +45,7 @@ export const SEO_DEFAULTS = {
   ogImageWidth: 1200,
   ogImageHeight: 630,
   twitterImage: "/assets/images/logo.webp",
+  googleAnalyticsId: "G-PCDFML3RTC",
   locale: "bn_BD",
   siteName: "দৈনিক মুক্তিমার্গ",
   authors: [{ name: "দৈনিক মুক্তিমার্গ" }],
