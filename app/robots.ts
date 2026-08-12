@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function robots(): MetadataRoute.Robots {
   const baseUrl =
     process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    "https://www.dailymuktimarg.com";
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
+    "https://dailymuktimarg.com";
 
   return {
     rules: [

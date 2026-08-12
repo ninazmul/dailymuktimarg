@@ -39,7 +39,8 @@ export const SEO_DEFAULTS = {
   },
   canonicalUrlBase:
     process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
-    "https://www.dailymuktimarg.com",
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
+    "https://dailymuktimarg.com",
   // logo.webp exists in /public/assets/images/ — use as OG/Twitter default
   ogImage: "/assets/images/logo.webp",
   ogImageWidth: 1200,

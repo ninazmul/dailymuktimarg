@@ -12,7 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
-    "https://www.dailymuktimarg.com";
+    process.env.NEXT_PUBLIC_SERVER_URL?.replace(/\/$/, "") ||
+    "https://dailymuktimarg.com";
 
   const articles = await News.find({ status: "published" })
     .select("slug updatedAt publishDate")
@@ -41,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: {
       languages: {
         "bn-BD": `${baseUrl}/news/${article.slug}`,
-        "en": `${baseUrl}/news/${article.slug}`,
+        en: `${baseUrl}/news/${article.slug}`,
       },
     },
   }));
@@ -57,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: {
       languages: {
         "bn-BD": `${baseUrl}/category/${cat.slug}`,
-        "en": `${baseUrl}/category/${cat.slug}`,
+        en: `${baseUrl}/category/${cat.slug}`,
       },
     },
   }));
@@ -100,7 +101,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: {
         languages: {
           "bn-BD": `${baseUrl}/todays-news`,
-          "en": `${baseUrl}/todays-news`,
+          en: `${baseUrl}/todays-news`,
         },
       },
     },
@@ -112,7 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: {
         languages: {
           "bn-BD": `${baseUrl}/search`,
-          "en": `${baseUrl}/search`,
+          en: `${baseUrl}/search`,
         },
       },
     },
@@ -127,7 +128,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: {
         languages: {
           "bn-BD": baseUrl,
-          "en": baseUrl,
+          en: baseUrl,
           "x-default": baseUrl,
         },
       },
