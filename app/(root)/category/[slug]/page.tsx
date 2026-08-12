@@ -16,7 +16,7 @@ import {
 } from "@/lib/seo";
 
 const ARTICLE_CARD_FIELDS =
-  "title slug summary featuredImage categoryId publishDate";
+  "title slug summary featuredImage categoryId nestedCategoryId publishDate";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -104,12 +104,19 @@ export default async function CategoryPage({
   }).lean<any[]>();
   descendants.forEach((d) => allCatIds.push(d._id));
 
-  const query = { status: "published", categoryId: { $in: allCatIds } };
+  const query = {
+    status: "published",
+    $or: [
+      { categoryId: { $in: allCatIds } },
+      { nestedCategoryId: { $in: allCatIds } },
+    ],
+  };
 
   const [articles, totalCount] = await Promise.all([
     News.find(query)
       .select(ARTICLE_CARD_FIELDS)
       .populate("categoryId", "name slug")
+      .populate("nestedCategoryId", "name slug")
       .sort({ publishDate: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -259,9 +266,11 @@ export default async function CategoryPage({
                     />
                   </div>
                   <div className="p-4">
-                    {article.categoryId?.name && (
+                    {(article.nestedCategoryId?.name ||
+                      article.categoryId?.name) && (
                       <span className="text-[10px] font-bold text-primary uppercase">
-                        {article.categoryId.name}
+                        {article.nestedCategoryId?.name ||
+                          article.categoryId.name}
                       </span>
                     )}
                     <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
