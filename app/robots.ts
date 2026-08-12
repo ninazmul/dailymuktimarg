@@ -10,7 +10,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "Googlebot",
-        allow: ["/", "/assets/", "/favicon.", "/manifest"],
+        allow: [
+          "/",
+          "/news/",
+          "/category/",
+          "/gallery/",
+          "/todays-news",
+          "/pages/",
+          "/search",
+          "/assets/",
+          "/favicon.",
+          "/manifest",
+          "/feed.xml",
+        ],
         disallow: ["/dashboard/", "/api/"],
       },
       {
@@ -24,17 +36,58 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard/"],
       },
       {
+        userAgent: "Googlebot-Video",
+        allow: ["/news/", "/gallery/"],
+        disallow: ["/dashboard/"],
+      },
+      {
         userAgent: "Bingbot",
         allow: ["/"],
         disallow: ["/dashboard/", "/api/"],
       },
       {
+        userAgent: "YandexBot",
+        allow: ["/"],
+        disallow: ["/dashboard/", "/api/"],
+      },
+      {
+        userAgent: "DuckDuckBot",
+        allow: ["/"],
+        disallow: ["/dashboard/", "/api/"],
+      },
+      {
+        userAgent: "Baiduspider",
+        allow: ["/"],
+        disallow: ["/dashboard/", "/api/"],
+      },
+      {
+        userAgent: "facebookexternalhit",
+        allow: ["/"],
+        disallow: [],
+      },
+      {
+        userAgent: "Facebot",
+        allow: ["/"],
+        disallow: [],
+      },
+      {
+        userAgent: "Twitterbot",
+        allow: ["/"],
+        disallow: [],
+      },
+      {
         userAgent: "*",
         allow: ["/"],
-        disallow: ["/dashboard/", "/api/", "/sign-in/", "/sign-up/"],
+        disallow: [
+          "/dashboard/",
+          "/api/",
+          "/sign-in/",
+          "/sign-up/",
+          "/maintenance/",
+        ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/news-sitemap.xml`],
     host: baseUrl,
   };
 }

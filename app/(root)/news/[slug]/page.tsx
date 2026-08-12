@@ -10,6 +10,7 @@ import Ad from "@/components/shared/Ad";
 import { getVideoEmbedUrl } from "@/lib/utils";
 import FramedImageWithDownload from "@/components/shared/FramedImageWithDownload";
 import {
+  SEO_DEFAULTS,
   buildPageTitle,
   buildRobots,
   getSeoInfo,
@@ -25,6 +26,8 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const [seoRes, _db] = await Promise.all([getSeoInfo(), connectToDatabase()]);
+  const metadataBase = new URL(seoRes.canonicalUrlBase);
+
   const article = await News.findOne({ slug, status: "published" })
     .populate("categoryId", "name slug")
     .populate("authorId", "name")
@@ -32,15 +35,21 @@ export async function generateMetadata({
 
   if (!article) {
     return {
+      metadataBase,
       title: buildPageTitle("সংবাদ পাওয়া যায়নি", seoRes.siteBrand),
       robots: buildRobots({ index: false }),
     };
   }
 
   const pageTitle = article.seoTitle || article.title;
+  const formattedTitle = buildPageTitle(pageTitle, seoRes.siteBrand);
   const description =
     article.metaDescription || article.summary || article.title;
   const articleUrl = `${seoRes.canonicalUrlBase}/news/${article.slug}`;
+  const canonical =
+    article.canonicalUrl && article.canonicalUrl.trim() !== ""
+      ? article.canonicalUrl
+      : articleUrl;
   const absoluteFeatured = toAbsoluteUrl(
     article.featuredImage,
     seoRes.canonicalUrlBase,
@@ -53,26 +62,50 @@ export async function generateMetadata({
     ? new Date(article.updatedAt).toISOString()
     : publishISO;
 
+  const mergedKeywords =
+    Array.isArray(article.keywords) && article.keywords.length
+      ? article.keywords
+      : seoRes.siteKeywords.slice(0, 10);
+
   return {
-    title: pageTitle,
+    metadataBase,
+    title: formattedTitle,
     description,
-    keywords: article.keywords?.join(", "),
+    keywords: mergedKeywords,
     alternates: {
-      canonical: `/news/${article.slug}`,
+      canonical,
+      languages: {
+        "x-default": articleUrl,
+        "bn-BD": articleUrl,
+        en: articleUrl,
+      },
     },
     robots: buildRobots(),
+    category: article.categoryId?.name || SEO_DEFAULTS.category,
+    authors: article.authorId?.name
+      ? [{ name: article.authorId.name }]
+      : SEO_DEFAULTS.authors,
+    creator: SEO_DEFAULTS.siteName,
+    publisher: SEO_DEFAULTS.publisher,
     openGraph: {
-      title: pageTitle,
+      title: formattedTitle,
       description,
       url: articleUrl,
-      siteName: "দৈনিক মুক্তিমার্গ",
+      siteName: seoRes.siteBrand || "দৈনিক মুক্তিমার্গ",
       locale: "bn_BD",
+      alternateLocale: ["en_US"],
       type: "article",
+      determiner: "auto",
       publishedTime: publishISO,
       modifiedTime: modifiedISO,
-      authors: article.authorId?.name ? [article.authorId.name] : undefined,
+      authors: article.authorId?.name
+        ? [article.authorId.name]
+        : [seoRes.siteBrand || "দৈনিক মুক্তিমার্গ"],
       section: article.categoryId?.name || undefined,
-      tags: Array.isArray(article.keywords) ? article.keywords : undefined,
+      tags:
+        Array.isArray(article.keywords) && article.keywords.length
+          ? article.keywords
+          : seoRes.siteKeywords.slice(0, 8),
       images: absoluteFeatured
         ? [
             {
@@ -80,13 +113,15 @@ export async function generateMetadata({
               width: 1200,
               height: 675,
               alt: article.title,
+              type: "image/webp",
+              secureUrl: absoluteFeatured,
             },
           ]
         : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: pageTitle,
+      title: formattedTitle,
       description,
       images: absoluteFeatured ? [absoluteFeatured] : undefined,
       creator: "@dailymuktimarg",
@@ -167,7 +202,64 @@ export default async function ArticlePage({ params }: PageProps) {
     : null;
   const logoUrl = `${canonicalBase}/assets/images/logo.webp`;
 
-  const jsonLd = {
+  const tagNames =
+    Array.isArray(article.tags) && article.tags.length
+      ? article.tags
+          .map((t: any) =>
+            typeof t === "object" && t.name
+              ? t.name
+              : typeof t === "string"
+                ? t
+                : null,
+          )
+          .filter(Boolean)
+      : [];
+
+  const speakableContent: string[] = [];
+  if (article.summary) speakableContent.push(article.summary);
+  if (article.title) speakableContent.unshift(article.title);
+  const speakableText = speakableContent.join(" ");
+
+  const datePublished = article.publishDate
+    ? new Date(article.publishDate).toISOString()
+    : new Date().toISOString();
+  const dateModified = article.updatedAt
+    ? new Date(article.updatedAt).toISOString()
+    : datePublished;
+  const copyrightYear = new Date(datePublished).getFullYear();
+
+  const publisherOrg = {
+    "@id": `${canonicalBase}/#organization`,
+    "@type": "NewsMediaOrganization",
+    name: brand,
+    alternateName: brandEn,
+    logo: {
+      "@type": "ImageObject",
+      url: logoUrl,
+      width: 600,
+      height: 60,
+    },
+    url: `${canonicalBase}/`,
+    sameAs: [
+      "https://twitter.com/dailymuktimarg",
+      "https://facebook.com/dailymuktimarg",
+    ],
+    foundingDate: "2020",
+  };
+
+  const authorEntity = article.authorId?.name
+    ? {
+        "@type": "Person",
+        name: article.authorId.name,
+        url: article.reporterId
+          ? `${canonicalBase}/#reporter-${article.reporterId}`
+          : `${canonicalBase}/about`,
+      }
+    : publisherOrg;
+
+  const videoEmbed = article.video ? getVideoEmbedUrl(article.video) : null;
+
+  const newsArticleLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     "@id": `${articleUrl}#newsArticle`,
@@ -175,7 +267,7 @@ export default async function ArticlePage({ params }: PageProps) {
     alternativeHeadline:
       article.seoTitle && article.seoTitle !== article.title
         ? article.title
-        : undefined,
+        : article.subtitle || undefined,
     description: article.metaDescription || article.summary || article.title,
     inLanguage: "bn-BD",
     wordCount:
@@ -198,48 +290,43 @@ export default async function ArticlePage({ params }: PageProps) {
             width: 1920,
             height: 1080,
             caption: article.imageCaption || article.title,
+            representativeOfPage: "True",
+            inLanguage: "bn-BD",
           },
         ]
       : undefined,
     thumbnailUrl: absoluteFeatured || undefined,
-    datePublished: article.publishDate
-      ? new Date(article.publishDate).toISOString()
-      : new Date().toISOString(),
-    dateModified: article.updatedAt
-      ? new Date(article.updatedAt).toISOString()
-      : article.publishDate
-        ? new Date(article.publishDate).toISOString()
-        : new Date().toISOString(),
-    author: article.authorId?.name
+    datePublished,
+    dateModified,
+    dateline: article.location || undefined,
+    author: authorEntity,
+    creator: article.reporterId?.name
+      ? {
+          "@type": "Person",
+          name: article.reporterId.name,
+        }
+      : authorEntity,
+    contributor: tagNames.length
+      ? tagNames.map((name: string) => ({
+          "@type": "Organization",
+          name,
+        }))
+      : undefined,
+    editor: article.authorId?.name
       ? {
           "@type": "Person",
           name: article.authorId.name,
         }
       : {
-          "@type": "Organization",
+          "@type": "Person",
           name: brand,
         },
-    contributor:
-      Array.isArray(article.tags) && article.tags.length
-        ? article.tags.map((t: string) => ({
-            "@type": "Organization",
-            name: t,
-          }))
-        : undefined,
-    editor: article.authorId?.name || brand,
-    publisher: {
+    publisher: publisherOrg,
+    sourceOrganization: publisherOrg,
+    copyrightHolder: {
       "@id": `${canonicalBase}/#organization`,
-      "@type": "NewsMediaOrganization",
-      name: brand,
-      alternateName: brandEn,
-      logo: {
-        "@type": "ImageObject",
-        url: logoUrl,
-        width: 512,
-        height: 512,
-      },
-      url: `${canonicalBase}/`,
     },
+    copyrightYear,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": articleUrl,
@@ -254,12 +341,92 @@ export default async function ArticlePage({ params }: PageProps) {
             .slice(0, 4000)
         : undefined,
     isAccessibleForFree: true,
-    hasPart: article.videoUrl
+    pageStart: 1,
+    pageEnd: 1,
+    printColumn: "online",
+    printEdition: "Online Edition",
+    speakable: speakableText
       ? {
-          "@type": "Clip",
-          url: article.videoUrl,
+          "@type": "SpeakableSpecification",
+          cssSelector: ["h1", ".prose p:first-of-type"],
+          xpath: ["/html/body/h1", "/html/body//p[1]"],
         }
       : undefined,
+    video:
+      videoEmbed || article.video
+        ? {
+            "@type": "VideoObject",
+            name: article.title,
+            description: article.summary || article.title,
+            thumbnailUrl: absoluteFeatured || undefined,
+            embedUrl: videoEmbed || undefined,
+            contentUrl: article.video || undefined,
+            uploadDate: datePublished,
+            publisher: publisherOrg,
+          }
+        : undefined,
+  };
+
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${canonicalBase}/#website`,
+    url: `${canonicalBase}/`,
+    name: brand,
+    alternateName: brandEn,
+    inLanguage: ["bn-BD", "en-US"],
+    publisher: {
+      "@id": `${canonicalBase}/#organization`,
+    },
+    potentialAction: [
+      {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${canonicalBase}/search?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    ],
+  };
+
+  const webpageLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": articleUrl,
+    url: articleUrl,
+    name: article.seoTitle || article.title,
+    description: article.metaDescription || article.summary || article.title,
+    inLanguage: "bn-BD",
+    isPartOf: { "@id": `${canonicalBase}/#website` },
+    breadcrumb: {
+      "@id": `${articleUrl}#breadcrumb`,
+    },
+    datePublished,
+    dateModified,
+    lastReviewed: dateModified,
+    reviewedBy: article.authorId?.name
+      ? {
+          "@type": "Person",
+          name: article.authorId.name,
+        }
+      : {
+          "@type": "Organization",
+          name: brand,
+        },
+    primaryImageOfPage: absoluteFeatured
+      ? {
+          "@type": "ImageObject",
+          url: absoluteFeatured,
+        }
+      : undefined,
+    publisher: {
+      "@id": `${canonicalBase}/#organization`,
+    },
+    copyrightHolder: {
+      "@id": `${canonicalBase}/#organization`,
+    },
+    copyrightYear,
   };
 
   const breadcrumbJsonLd = {
@@ -296,10 +463,17 @@ export default async function ArticlePage({ params }: PageProps) {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
-          {/* Structured Markup */}
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(newsArticleLd) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageLd) }}
           />
           <script
             type="application/ld+json"

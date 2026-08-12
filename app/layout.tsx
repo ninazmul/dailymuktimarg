@@ -82,7 +82,7 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: SEO_DEFAULTS.publisher,
     category: SEO_DEFAULTS.category,
 
-    // ─── Canonical + bilingual hreflang ────────────────────────────────────
+    // ─── Canonical + bilingual hreflang + feed discovery ───────────────────
     // x-default: catch-all URL when no language variant matches.
     // en: signals English content exists (for bilingual ranking).
     // bn-BD: primary Bengali audience.
@@ -92,6 +92,11 @@ export async function generateMetadata(): Promise<Metadata> {
         "x-default": `${base}/`,
         "en": `${base}/`,
         "bn-BD": `${base}/`,
+      },
+      types: {
+        "application/rss+xml": [
+          { url: `${base}/feed.xml`, title: "দৈনিক মুক্তিমার্গ — RSS Feed" },
+        ],
       },
     },
 
