@@ -19,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [],
       },
       {
-        // Explicit Googlebot-News rules to ensure full news coverage
         userAgent: "Googlebot-News",
         allow: ["/", "/news/", "/category/", "/gallery/", "/todays-news"],
         disallow: ["/dashboard/"],
