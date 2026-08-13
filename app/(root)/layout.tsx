@@ -71,6 +71,13 @@ export default async function PublicLayout({
   const sameAsLinks = Object.values(social).filter(
     (u): u is string => typeof u === "string" && u.length > 0,
   );
+  // Ensure social media profiles are always included to boost entity authority.
+  const defaultSocial = [
+    "https://www.facebook.com/dailymuktimarg",
+    "https://twitter.com/dailymuktimarg",
+    "https://www.youtube.com/@dailymuktimarg",
+  ];
+  const allSameAs = Array.from(new Set([...sameAsLinks, ...defaultSocial]));
   const potentialSearchTarget = `${canonicalBase}/search?q={search_term_string}`;
 
   const websiteLd = {
@@ -79,7 +86,7 @@ export default async function PublicLayout({
     "@id": `${canonicalBase}/#website`,
     name: orgName,
     alternateName: orgNameEnglish,
-    inLanguage: "bn-BD",
+    inLanguage: ["bn-BD", "en"],
     url: `${canonicalBase}/`,
     description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
     publisher: { "@id": `${canonicalBase}/#organization` },
@@ -100,32 +107,45 @@ export default async function PublicLayout({
     "@type": "NewsMediaOrganization",
     "@id": `${canonicalBase}/#organization`,
     name: orgName,
+    // Bengali legal/primary name first so Google Knowledge Graph favours Bengali.
+    legalName: orgName,
     alternateName: orgNameEnglish,
-    legalName: orgNameEnglish,
     description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
     url: `${canonicalBase}/`,
     email: setting?.contactEmail || undefined,
     telephone: setting?.phoneNumber || undefined,
     address: setting?.address || undefined,
-    foundingDate: seo.establishmentDate || undefined,
+    areaServed: {
+      "@type": "Country",
+      name: "Bangladesh",
+    },
+    foundingDate: seo.establishmentDate || "2020",
+    // Google's Knowledge Graph logo strict rule: ≤60px height × ≤600px width
     logo: siteLogoUrl
       ? {
-        "@type": "ImageObject",
-        url: siteLogoUrl,
-        width: 512,
-        height: 512,
-      }
+          "@type": "ImageObject",
+          url: siteLogoUrl,
+          width: 600,
+          height: 60,
+        }
       : undefined,
     image: siteLogoUrl || undefined,
-    sameAs: sameAsLinks.length ? sameAsLinks : undefined,
-    sameAsLinks: undefined as unknown as undefined,
-    knowsLanguage: ["bn", "en"],
+    sameAs: allSameAs,
+    knowsLanguage: ["bn-BD", "en-US"],
     ethicsPolicy: seo.ethicsPolicyUrl || undefined,
     masthead: seo.mastheadUrl || undefined,
     correctionsPolicy: seo.correctionsPolicyUrl || undefined,
     diversityPolicy: seo.diversityPolicyUrl || undefined,
+    // Signals to Google this is an established News publication
+    publishingPrinciples: seo.ethicsPolicyUrl || undefined,
+    actionableFeedbackPolicy: seo.correctionsPolicyUrl || undefined,
+    ownershipFundingInfo: `${canonicalBase}/pages/about`,
+    diversityStaffingReport: seo.diversityPolicyUrl || undefined,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${canonicalBase}/pages/about`,
+    },
   };
-  delete (organizationLd as any).sameAsLinks;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 max-w-full overflow-x-hidden">

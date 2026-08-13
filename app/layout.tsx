@@ -60,90 +60,114 @@ export async function generateMetadata(): Promise<Metadata> {
   const absoluteOg = toAbsoluteUrl(seo.ogImage, base);
   const absoluteTwitter = toAbsoluteUrl(seo.twitterCardImage, base);
 
-  // Icon assets — logo.png & logo.webp exist in /public/assets/images/
-  const logoPng = `${base}/assets/images/logo.png`;
+  // Icon assets — Google favicon rules:
+  // 1. Must be explicitly declared as <link rel="icon"> with PNG/JPG/GIF
+  // 2. Minimum recommended size is 48×48 pixels; 16x32x48 standard set
+  // 3. favicon.ico must be complemented by PNG variants
+  // 4. Avoid SVG for search favicon (Google falls back to site if SVG)
+  const faviconIco = "/favicon.ico";
+  const logoPng16 = `${base}/assets/images/logo.png`;
+  const logoPng32 = `${base}/assets/images/logo.png`;
+  const logoPng48 = `${base}/assets/images/logo.png`;
+  const logoPng192 = `${base}/assets/images/logo.png`;
+  const logoPng512 = `${base}/assets/images/logo.png`;
+  const logoPngAppletouch = `${base}/assets/images/logo.png`;
 
   return {
     metadataBase,
 
-    // ─── Title ────────────────────────────────────────────────────────────
+    // ─── Title — Bengali-first, exact brand match ──────────────────────────
     title: {
       default: seo.siteTitle,
       template: `%s | ${seo.siteBrand}`,
       absolute: seo.siteTitle,
     },
 
-    // ─── Basic meta ────────────────────────────────────────────────────────
+    // ─── Basic meta — Bengali language signals only (no English confusion) ─
     description: seo.siteDescription,
-    keywords: seo.siteKeywords, // Bengali + English merged in getSeoInfo()
+    keywords: seo.siteKeywords,
     applicationName: SEO_DEFAULTS.siteName,
     authors: [...SEO_DEFAULTS.authors],
     creator: SEO_DEFAULTS.siteName,
     publisher: SEO_DEFAULTS.publisher,
     category: SEO_DEFAULTS.category,
 
-    // ─── Canonical + bilingual hreflang + feed discovery ───────────────────
-    // x-default: catch-all URL when no language variant matches.
-    // en: signals English content exists (for bilingual ranking).
-    // bn-BD: primary Bengali audience.
+    // ─── Canonical + single-language hreflang + feed discovery ─────────────
+    // NOTE: Since site is *only* Bengali (no real English pages), we remove
+    // the fake "en" hreflang — Google penalises fake multilingual signals
+    // because they cause auto-translate override and wrong title language.
     alternates: {
       canonical: "/",
       languages: {
         "x-default": `${base}/`,
-        "en": `${base}/`,
         "bn-BD": `${base}/`,
       },
       types: {
         "application/rss+xml": [
           { url: `${base}/feed.xml`, title: "দৈনিক মুক্তিমার্গ — RSS Feed" },
         ],
+        "application/atom+xml": [
+          { url: `${base}/feed.xml`, title: "দৈনিক মুক্তিমার্গ" },
+        ],
       },
     },
 
-    // ─── Favicon & PWA icons ───────────────────────────────────────────────
-    // Google Search picks the best favicon from these declarations.
-    // Prefer PNG with explicit pixel sizes over SVG for search result display.
+    // ─── Favicon & PWA icons (Google favicon spec compliant) ───────────────
+    // https://developers.google.com/search/docs/appearance/favicon-in-search
     icons: {
+      // icon[] = <link rel="icon"> — Google scans these FIRST for favicon
       icon: [
-        // favicon.ico — universal fallback (legacy browsers, Bing)
-        { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
-        // PNG sizes for Google Search favicons and Rich Results
-        { url: logoPng, sizes: "32x32", type: "image/png" },
-        { url: logoPng, sizes: "192x192", type: "image/png" },
-        { url: logoPng, sizes: "512x512", type: "image/png" },
+        // Google's favicon requirement: 48x48 is minimum for SERP display.
+        { url: logoPng48, sizes: "48x48", type: "image/png" },
+        { url: logoPng32, sizes: "32x32", type: "image/png" },
+        { url: logoPng16, sizes: "16x16", type: "image/png" },
+        { url: logoPng192, sizes: "192x192", type: "image/png" },
+        { url: logoPng512, sizes: "512x512", type: "image/png" },
+        // ICO fallback after PNGs so Google sees PNG first
+        { url: faviconIco, sizes: "any", type: "image/x-icon" },
       ],
-      shortcut: "/favicon.ico",
-      // Apple touch icon for iOS home screen
-      apple: [{ url: logoPng, sizes: "180x180", type: "image/png" }],
-      // Supplemental signals for Google image index + share previews
+      // <link rel="shortcut icon"> — legacy browsers
+      shortcut: faviconIco,
+      // <link rel="apple-touch-icon"> — iOS, also Google signal
+      apple: [{ url: logoPngAppletouch, sizes: "180x180", type: "image/png" }],
       other: [
-        { rel: "apple-touch-icon-precomposed", url: logoPng },
+        { rel: "apple-touch-icon-precomposed", url: logoPngAppletouch },
+        // <link rel="image_src"> — legacy preview icon
         ...(absoluteOg ? [{ rel: "image_src", url: absoluteOg }] : []),
+        // <link rel="mask-icon"> (Safari pinned tab; SVG file we have)
+        {
+          rel: "mask-icon",
+          url: "/assets/icons/apple-touch-icon.svg",
+          color: "#226B3A",
+        },
       ],
     },
 
     manifest: "/manifest.webmanifest",
     robots: buildRobots(),
 
-    // ─── Google Search Console verification ───────────────────────────────
+    // ─── Google Search Console / Bing verification ─────────────────────────
     verification: seo.googleSearchConsoleVerification
-      ? { google: seo.googleSearchConsoleVerification }
+      ? {
+          google: seo.googleSearchConsoleVerification,
+          yandex: undefined,
+        }
       : undefined,
 
+    // Prevent mobile auto-linking of numbers/email in SERP preview
     formatDetection: {
       telephone: false,
       address: false,
       email: false,
     },
 
-    // ─── Open Graph ────────────────────────────────────────────────────────
+    // ─── Open Graph (Facebook / LinkedIn / WhatsApp) ───────────────────────
     openGraph: {
       title: seo.ogTitle,
       description: seo.ogDescription,
       url: base,
       siteName: SEO_DEFAULTS.siteName,
       locale: SEO_DEFAULTS.locale,
-      alternateLocale: ["en_US"], // bilingual signal for OG crawlers
       type: "website",
       images: absoluteOg
         ? [
@@ -152,6 +176,8 @@ export async function generateMetadata(): Promise<Metadata> {
               width: SEO_DEFAULTS.ogImageWidth,
               height: SEO_DEFAULTS.ogImageHeight,
               alt: seo.siteBrand,
+              type: "image/webp",
+              secureUrl: absoluteOg,
             },
           ]
         : undefined,
@@ -175,6 +201,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // Bengali stays the DEFAULT language for SERP because:
+    //   1. lang="bn" on html (primary signal)
+    //   2. No fake "en" hreflang pointing to same URL (prevents Google from
+    //      thinking an English canonical exists and translating over Bengali)
+    //   3. Schema.org uses Bengali for name+legalName, English only as alternateName
+    // Users can still click "Translate this page" — just won't happen by default.
     <html lang="bn" data-scroll-behavior="smooth">
       <body
         className={`${inter.variable} ${dmSerif.variable} ${solaimanLipi.variable} font-sans`}

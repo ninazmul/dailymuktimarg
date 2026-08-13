@@ -77,7 +77,6 @@ export async function generateMetadata({
       languages: {
         "x-default": articleUrl,
         "bn-BD": articleUrl,
-        en: articleUrl,
       },
     },
     robots: buildRobots(),
@@ -93,7 +92,6 @@ export async function generateMetadata({
       url: articleUrl,
       siteName: seoRes.siteBrand || "দৈনিক মুক্তিমার্গ",
       locale: "bn_BD",
-      alternateLocale: ["en_US"],
       type: "article",
       determiner: "auto",
       publishedTime: publishISO,

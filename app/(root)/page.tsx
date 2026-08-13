@@ -18,35 +18,57 @@ export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoInfo();
-  const absoluteOg = toAbsoluteUrl(seo.ogImage, seo.canonicalUrlBase);
+  const base = seo.canonicalUrlBase;
+  const metadataBase = new URL(base);
+  const absoluteOg = toAbsoluteUrl(seo.ogImage, base);
+  const absoluteTwitter = toAbsoluteUrl(seo.twitterCardImage, base);
   return {
+    metadataBase,
+    // Use absolute Bengali title (NOT template) on homepage to force
+    // Google to see the exact Bengali string instead of deriving it.
     title: seo.siteTitle,
     description: seo.siteDescription,
     keywords: seo.siteKeywords,
+    authors: [...SEO_DEFAULTS.authors],
+    creator: SEO_DEFAULTS.siteName,
+    publisher: SEO_DEFAULTS.publisher,
+    category: SEO_DEFAULTS.category,
     alternates: {
       canonical: "/",
+      languages: {
+        "x-default": `${base}/`,
+        "bn-BD": `${base}/`,
+      },
+      types: {
+        "application/rss+xml": [
+          { url: `${base}/feed.xml`, title: "দৈনিক মুক্তিমার্গ — RSS Feed" },
+        ],
+      },
     },
     robots: buildRobots(),
     openGraph: {
       title: seo.ogTitle,
       description: seo.ogDescription,
-      url: seo.canonicalUrlBase,
-      siteName: "দৈনিক মুক্তিমার্গ",
+      url: base,
+      siteName: SEO_DEFAULTS.siteName,
       locale: "bn_BD",
       type: "website",
       images: absoluteOg
-        ? [{ url: absoluteOg, width: 1200, height: 630, alt: seo.siteBrand }]
+        ? [{
+            url: absoluteOg,
+            width: SEO_DEFAULTS.ogImageWidth,
+            height: SEO_DEFAULTS.ogImageHeight,
+            alt: seo.siteBrand,
+            type: "image/webp",
+            secureUrl: absoluteOg,
+          }]
         : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: seo.twitterCardTitle,
       description: seo.twitterCardDescription,
-      images: seo.twitterCardImage
-        ? ([toAbsoluteUrl(seo.twitterCardImage, seo.canonicalUrlBase)].filter(
-            Boolean,
-          ) as string[])
-        : undefined,
+      images: absoluteTwitter ? [absoluteTwitter] : undefined,
       creator: "@dailymuktimarg",
       site: "@dailymuktimarg",
     },
