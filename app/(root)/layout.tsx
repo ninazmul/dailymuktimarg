@@ -63,7 +63,22 @@ export default async function PublicLayout({
     SEO_DEFAULTS.canonicalUrlBase;
   const siteLogoUrl = toAbsoluteUrl("/assets/images/logo.webp", canonicalBase);
   const orgName = publicSeo?.siteBrand || SEO_DEFAULTS.siteBrand;
-  const orgNameEnglish = "Daily Muktimarg";
+  const brandAliases = [
+    "Daily",
+    "Daily Muktimarg",
+    "Muktimarg",
+    "dailymuktimarg",
+    "daily muktimarg",
+    "dailymuktimarg.com",
+    "দৈনিক মুক্তিমার্গ",
+    "দৈনিক",
+    "মুক্তিমার্গ",
+    "Daily Mukti Marg",
+    "Mukti Marg",
+    "Dainik Muktimarg",
+    "Dainik Mukti Marg",
+    "Dailymukti",
+  ];
   const social =
     setting?.socialLinks && !(setting.socialLinks instanceof Map)
       ? (setting.socialLinks as unknown as Record<string, string | undefined>)
@@ -85,7 +100,7 @@ export default async function PublicLayout({
     "@type": "WebSite",
     "@id": `${canonicalBase}/#website`,
     name: orgName,
-    alternateName: orgNameEnglish,
+    alternateName: brandAliases,
     inLanguage: ["bn-BD", "en"],
     url: `${canonicalBase}/`,
     description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
@@ -108,8 +123,8 @@ export default async function PublicLayout({
     "@id": `${canonicalBase}/#organization`,
     name: orgName,
     // Bengali legal/primary name first so Google Knowledge Graph favours Bengali.
-    legalName: orgName,
-    alternateName: orgNameEnglish,
+    legalName: "দৈনিক মুক্তিমার্গ",
+    alternateName: brandAliases,
     description: publicSeo?.siteDescription || SEO_DEFAULTS.siteDescription,
     url: `${canonicalBase}/`,
     email: setting?.contactEmail || undefined,

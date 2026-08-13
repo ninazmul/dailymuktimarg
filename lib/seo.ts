@@ -36,7 +36,11 @@ export async function getSeoInfo(): Promise<ResolvedSeo> {
         ? [...seo.siteKeywords]
         : [...SEO_DEFAULTS.siteKeywordsBn];
     const siteKeywords = Array.from(
-      new Set([...dbKeywords, ...SEO_DEFAULTS.siteKeywordsEn]),
+      new Set([
+        ...dbKeywords,
+        ...SEO_DEFAULTS.siteKeywordsBn,
+        ...SEO_DEFAULTS.siteKeywordsEn,
+      ]),
     );
 
     return {

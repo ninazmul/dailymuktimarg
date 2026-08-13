@@ -2,13 +2,20 @@
 // All image paths must resolve to real files under /public.
 export const SEO_DEFAULTS = {
   siteTitle: "দৈনিক মুক্তিমার্গ। ন্যায়ের পথে মুক্তির আলো",
-  siteBrand: "দৈনিক মুক্তিমার্গ",
+  siteBrand: "দৈনিক মুক্তিমার্গ | Daily Muktimarg",
   siteDescription:
-    "বাংলাদেশের অন্যতম প্রতিনিধিত্বশীল অনলাইন সংবাদ মাধ্যম দৈনিক মুক্তিমার্গ। সর্বশেষ সংবাদ, বিশ্লেষণ, মতামত, রাজনীতি, অর্থনীতি, ক্রীড়া, বিনোদন, আইন ও ন্যায়বিচারসহ সব খবর ন্যায়ের পথে।",
+    "বাংলাদেশের অন্যতম প্রতিনিধিত্বশীল অনলাইন সংবাদ মাধ্যম দৈনিক মুক্তিমার্গ। সর্বশেষ সংবাদ, বিশ্লেষণ, মতামত, রাজনীতি, অর্থনীতি, ক্রীড়া, বিনোদন, আইন ও ন্যায়বিচারসহ সব খবর ন্যায়ের পথে। — (Daily Muktimarg / Muktimarg / daily muktimarg / dailymuktimarg.com)",
   // Bengali keywords
   siteKeywordsBn: [
     "দৈনিক মুক্তিমার্গ",
     "মুক্তিমার্গ",
+    "দৈনিক",
+    "দৈনিক মুক্তিমার্গ সংবাদ",
+    "দৈনিক মুক্তিমার্গ খবর",
+    "দৈনিক মুক্তিমার্গ অনলাইন",
+    "দৈনিক মুক্তিমার্গ পত্রিকা",
+    "মুক্তিমার্গ সংবাদ",
+    "মুক্তিমার্গ খবর",
     "অনলাইন খবর",
     "বাংলাদেশ খবর",
     "আজকের খবর",
@@ -21,10 +28,20 @@ export const SEO_DEFAULTS = {
     "আন্তর্জাতিক সংবাদ",
     "জাতীয় সংবাদ",
   ] as string[],
-  // English keywords for bilingual Google ranking
+  // English keywords for global & bilingual search ranking
   siteKeywordsEn: [
     "Daily Muktimarg",
     "Muktimarg",
+    "Daily",
+    "dailymuktimarg",
+    "daily muktimarg",
+    "dailymuktimarg.com",
+    "Daily Mukti Marg",
+    "Mukti Marg",
+    "Dainik Muktimarg",
+    "Dainik Mukti Marg",
+    "Dailymukti",
+    "Mukti",
     "Bangladesh news",
     "Bangladeshi newspaper",
     "online news Bangladesh",

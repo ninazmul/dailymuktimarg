@@ -3,8 +3,8 @@ import { getSeoInfo, SEO_DEFAULTS } from "@/lib/seo";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const seo = await getSeoInfo().catch(() => null);
-  const name = seo?.siteBrand || SEO_DEFAULTS.siteBrand;
-  const shortName = seo?.siteBrand || SEO_DEFAULTS.siteBrand;
+  const name = seo?.siteBrand || "দৈনিক মুক্তিমার্গ | Daily Muktimarg";
+  const shortName = "Daily Muktimarg";
   const desc = seo?.siteDescription || SEO_DEFAULTS.siteDescription;
   const startUrl = seo?.canonicalUrlBase || SEO_DEFAULTS.canonicalUrlBase;
   const logoPng = `${startUrl}/assets/images/logo.png`;
