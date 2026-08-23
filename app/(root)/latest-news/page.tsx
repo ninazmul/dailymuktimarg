@@ -349,7 +349,7 @@ export default async function LatestNewsPage({ searchParams }: PageProps) {
           {safeTrending.length > 0 && (
             <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-200/80 shadow-sm">
               <h2 className="text-lg font-black text-gray-800 border-l-4 border-rose-500 pl-3 flex items-center gap-1.5">
-                <span>🔥 আলোচিত সংবাদ</span>
+                <span>আলোচিত সংবাদ</span>
               </h2>
               <div className="flex flex-col gap-3">
                 {safeTrending.map((item: any, idx: number) => (

@@ -36,7 +36,25 @@ export default function HomepageSection({
   if (!articles || articles.length === 0) return null;
 
   const categorySlug = section.categoryId?.slug;
-  const displayTitle = section.customTitle || section.sectionName;
+  const rawTitle = section.customTitle || section.sectionName;
+
+  const TITLE_MAP: Record<string, string> = {
+    "Trending News": "আলোচিত সংবাদ",
+    Trending: "আলোচিত সংবাদ",
+    "Latest News": "সর্বশেষ সংবাদ",
+    Latest: "সর্বশেষ",
+    "Most Read": "সর্বাধিক পঠিত",
+    "Most Read Articles": "সর্বাধিক পঠিত",
+    Featured: "নির্বাচিত সংবাদ",
+    "Featured Picks": "নির্বাচিত সংবাদ",
+    "Video News": "ভিডিও সংবাদ",
+    "Video News Gallery": "ভিডিও সংবাদ",
+    "Photo Gallery": "ফটো গ্যালারি",
+    "Photo News Gallery": "ফটো গ্যালারি",
+    "Breaking News": "জরুরি সংবাদ",
+  };
+
+  const displayTitle = TITLE_MAP[rawTitle] || rawTitle;
   const layout = section.layoutType || "grid";
   const isVideoGallery = section.sectionType === "videoGallery";
 
@@ -91,22 +109,22 @@ export default function HomepageSection({
       )}
       {article.featured && (
         <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-          Featured
+          নির্বাচিত
         </span>
       )}
       {article.trending && (
         <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-          Trending
+          আলোচিত
         </span>
       )}
       {article.video && (
         <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded flex items-center gap-1">
-          <Play className="w-2.5 h-2.5 fill-red-600" /> Video
+          <Play className="w-2.5 h-2.5 fill-red-600" /> ভিডিও
         </span>
       )}
       {article.gallery && article.gallery.length > 0 && (
         <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded flex items-center gap-1">
-          <ImageIcon className="w-2.5 h-2.5" /> Gallery (
+          <ImageIcon className="w-2.5 h-2.5" /> গ্যালারি (
           {article.gallery.length})
         </span>
       )}
@@ -134,7 +152,7 @@ export default function HomepageSection({
             href={`/category/${categorySlug}`}
             className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
           >
-            <span>View All</span>
+            <span>সব দেখুন</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         )}
