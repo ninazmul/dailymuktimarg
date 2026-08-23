@@ -4,7 +4,6 @@ import Category from "@/lib/database/models/category.model";
 import Tag from "@/lib/database/models/tag.model";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
-import NewsSidebar from "@/components/shared/NewsSidebar";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -36,7 +35,7 @@ export async function generateMetadata({
   const cat = (resolved.category || "").trim();
   const tag = (resolved.tag || "").trim();
 
-  let pageTitle = "খুঁজুন";
+  let pageTitle = "অনুসন্ধান";
   let desc = `${seo.siteBrand}-এ সংবাদ, ক্যাটাগরি ও ট্যাগ অনুসন্ধান করুন।`;
   if (query) {
     pageTitle = `"${query}" - অনুসন্ধান ফলাফল`;
@@ -106,7 +105,6 @@ export default async function SearchPage({
     getAds({ status: "active" }),
   ]);
 
-  const sidebarAds = activeAds.filter((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
 
   // Construct search query
@@ -133,7 +131,7 @@ export default async function SearchPage({
     }
   }
 
-  const [articles, totalCount, mostViewed, trendingNews] = await Promise.all([
+  const [articles, totalCount] = await Promise.all([
     News.find(searchFilter)
       .select(ARTICLE_CARD_FIELDS)
       .sort({ publishDate: -1 })
@@ -142,35 +140,10 @@ export default async function SearchPage({
       .limit(limit)
       .lean<any[]>(),
     News.countDocuments(searchFilter),
-    News.find({ status: "published" })
-      .select(ARTICLE_CARD_FIELDS)
-      .populate("categoryId", "name slug")
-      .sort({ views: -1 })
-      .limit(5)
-      .lean<any[]>(),
-    News.find({ status: "published", trending: true })
-      .select(ARTICLE_CARD_FIELDS)
-      .populate("categoryId", "name slug")
-      .sort({ publishDate: -1 })
-      .limit(5)
-      .lean<any[]>(),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
   const safeArticles = JSON.parse(JSON.stringify(articles));
-  const safeMostViewed = JSON.parse(JSON.stringify(mostViewed));
-  let safeTrending = JSON.parse(JSON.stringify(trendingNews));
-
-  if (safeTrending.length === 0) {
-    const fallbackTrending = await News.find({ status: "published" })
-      .select(ARTICLE_CARD_FIELDS)
-      .populate("categoryId", "name slug")
-      .sort({ views: -1, publishDate: -1 })
-      .skip(5)
-      .limit(5)
-      .lean<any[]>();
-    safeTrending = JSON.parse(JSON.stringify(fallbackTrending));
-  }
 
   const canonicalBase = SEO_DEFAULTS.canonicalUrlBase;
   const brand = SEO_DEFAULTS.siteBrand;
@@ -199,180 +172,190 @@ export default async function SearchPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <h1 className="text-3xl font-black text-gray-800 border-l-4 border-primary pl-4 mb-8">
-        Search Archive
-      </h1>
+      
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+        <Link href="/" className="hover:text-primary">
+          {brand}
+        </Link>
+        <span>/</span>
+        <span className="text-gray-800 font-semibold">অনুসন্ধান</span>
+      </nav>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Main Content */}
-        <div className="flex-1">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Filters Sidebar */}
-            <div className="bg-white border rounded-xl p-5 h-fit space-y-6">
-              <form method="GET" action="/search" className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    Search Keywords
-                  </label>
-                  <input
-                    type="text"
-                    name="q"
-                    defaultValue={query}
-                    placeholder="e.g. politics, dynamic layouts..."
-                    className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-primary outline-none transition"
-                  />
-                </div>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-3xl font-black text-gray-800 border-l-4 border-primary pl-4">
+          অনুসন্ধান
+        </h1>
+        {totalCount > 0 && (
+          <p className="text-sm text-gray-500">
+            মোট <span className="font-bold text-gray-800">{toBn(totalCount)}</span> টি সংবাদ পাওয়া গেছে
+          </p>
+        )}
+      </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    Category
-                  </label>
-                  <select
-                    name="category"
-                    defaultValue={catSlug}
-                    className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none"
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map((c: any) => (
-                      <option key={c._id.toString()} value={c.slug}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    ট্যাগ
-                  </label>
-                  <select
-                    name="tag"
-                    defaultValue={tagSlug}
-                    className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none"
-                  >
-                    <option value="">সকল ট্যাগ</option>
-                    {tags.map((t: any) => (
-                      <option key={t._id.toString()} value={t.slug}>
-                        #{t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/95 text-white text-sm font-semibold p-2.5 rounded-lg transition"
-                >
-                  ফিল্টার করুন
-                </button>
-                <Link
-                  href="/search"
-                  className="block text-center text-xs text-gray-400 hover:text-gray-600 transition"
-                >
-                  ফিল্টার রিসেট করুন
-                </Link>
-              </form>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Filters Panel */}
+        <div className="lg:col-span-1 bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm space-y-5 lg:sticky lg:top-24">
+          <h2 className="text-sm font-bold text-gray-800 border-b pb-2">
+            ফিল্টার অপশন
+          </h2>
+          <form method="GET" action="/search" className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                কীওয়ার্ড
+              </label>
+              <input
+                type="text"
+                name="q"
+                defaultValue={query}
+                placeholder="শিরোনাম বা সংবাদের বিষয়..."
+                className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-primary outline-none transition"
+              />
             </div>
 
-            {/* Results grid */}
-            <div className="lg:col-span-2 space-y-6">
-              {safeArticles.length === 0 ? (
-                <div className="text-center p-12 border border-dashed rounded-xl text-gray-500 bg-white">
-                  কোনো সংবাদ পাওয়া যায়নি। অনুগ্রহ করে অন্য কীওয়ার্ড দিয়ে চেষ্টা করুন।
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {safeArticles.map((article: any) => (
-                      <Link
-                        key={article._id}
-                        href={`/news/${article.slug}`}
-                        className="group bg-white rounded-xl border overflow-hidden hover:shadow-lg transition"
-                      >
-                        <div className="relative aspect-video">
-                          <Image
-                            src={article.featuredImage}
-                            alt={article.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="p-4">
-                          {article.categoryId?.name && (
-                            <span className="text-[10px] font-bold text-primary uppercase">
-                              {article.categoryId.name}
-                            </span>
-                          )}
-                          <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
-                            {article.title}
-                          </h3>
-                          {article.summary && (
-                            <p className="text-xs text-gray-500 mt-2 line-clamp-2">
-                              {article.summary}
-                            </p>
-                          )}
-                          <p className="text-[10px] text-gray-400 mt-2">
-                            {article.publishDate
-                              ? new Date(article.publishDate).toLocaleDateString(
-                                "bn-BD",
-                                {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                },
-                              )
-                              : ""}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-
-                  {/* Inline Ads */}
-                  {inlineAds.length > 0 && (
-                    <div className="my-8 max-w-3xl mx-auto space-y-4">
-                      {inlineAds.map((ad) => (
-                        <Ad key={ad._id.toString()} ad={ad} />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center gap-2 mt-8">
-                      {page > 1 && (
-                        <Link
-                          href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page - 1}`}
-                          className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
-                        >
-                          ← আগের পাতা
-                        </Link>
-                      )}
-                      <span className="px-4 py-2 text-sm text-gray-500 bg-white border rounded-lg">
-                        পাতা {toBn(page)} / {toBn(totalPages)}
-                      </span>
-                      {page < totalPages && (
-                        <Link
-                          href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page + 1}`}
-                          className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
-                        >
-                          পরের পাতা →
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                বিভাগ
+              </label>
+              <select
+                name="category"
+                defaultValue={catSlug}
+                className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none"
+              >
+                <option value="">সকল বিভাগ</option>
+                {categories.map((c: any) => (
+                  <option key={c._id.toString()} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                ট্যাগ
+              </label>
+              <select
+                name="tag"
+                defaultValue={tagSlug}
+                className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none"
+              >
+                <option value="">সকল ট্যাগ</option>
+                {tags.map((t: any) => (
+                  <option key={t._id.toString()} value={t.slug}>
+                    #{t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/95 text-white text-sm font-bold p-2.5 rounded-xl shadow-sm transition"
+            >
+              ফিল্টার করুন
+            </button>
+            {(query || catSlug || tagSlug) && (
+              <Link
+                href="/search"
+                className="block text-center text-xs text-red-500 hover:underline pt-1"
+              >
+                ফিল্টার রিসেট করুন
+              </Link>
+            )}
+          </form>
         </div>
 
-        {/* Unified Sidebar */}
-        <NewsSidebar
-          mostViewedArticles={safeMostViewed}
-          trendingArticles={safeTrending}
-          sidebarAds={sidebarAds}
-        />
+        {/* Results grid */}
+        <div className="lg:col-span-3 space-y-6">
+          {safeArticles.length === 0 ? (
+            <div className="text-center p-16 border border-dashed rounded-2xl text-gray-500 bg-white shadow-sm">
+              কোনো সংবাদ পাওয়া যায়নি। অনুগ্রহ করে অন্য কীওয়ার্ড দিয়ে চেষ্টা করুন।
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {safeArticles.map((article: any) => (
+                  <Link
+                    key={article._id}
+                    href={`/news/${article.slug}`}
+                    className="group bg-white rounded-xl border overflow-hidden hover:shadow-lg transition"
+                  >
+                    <div className="relative aspect-video">
+                      <Image
+                        src={article.featuredImage || "/assets/images/logo.png"}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4">
+                      {article.categoryId?.name && (
+                        <span className="text-[10px] font-bold text-primary uppercase">
+                          {article.categoryId.name}
+                        </span>
+                      )}
+                      <h3 className="text-sm font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-primary transition">
+                        {article.title}
+                      </h3>
+                      {article.summary && (
+                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                          {article.summary}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-gray-400 mt-2">
+                        {article.publishDate
+                          ? new Date(article.publishDate).toLocaleDateString(
+                            "bn-BD",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )
+                          : ""}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Inline Ads */}
+              {inlineAds.length > 0 && (
+                <div className="my-8 max-w-3xl mx-auto space-y-4">
+                  {inlineAds.map((ad) => (
+                    <Ad key={ad._id.toString()} ad={ad} />
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {page > 1 && (
+                    <Link
+                      href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page - 1}`}
+                      className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
+                    >
+                      ← আগের পাতা
+                    </Link>
+                  )}
+                  <span className="px-4 py-2 text-sm text-gray-500 bg-white border rounded-lg">
+                    পাতা {toBn(page)} / {toBn(totalPages)}
+                  </span>
+                  {page < totalPages && (
+                    <Link
+                      href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page + 1}`}
+                      className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
+                    >
+                      পরের পাতা →
+                    </Link>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
