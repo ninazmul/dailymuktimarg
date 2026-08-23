@@ -337,9 +337,8 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
   return (
     <header
-      className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-transform duration-300 ${
-        isVisible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
     >
       {/* Top Logo Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 relative z-20">
@@ -461,6 +460,12 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               className="px-4 py-2 font-extrabold text-gray-800 hover:text-primary transition-all duration-200 flex-shrink-0"
             >
               হোম
+            </Link>
+            <Link
+              href="/latest-news"
+              className="px-4 py-2 font-extrabold text-gray-800 hover:text-primary transition-all duration-200 flex-shrink-0"
+            >
+              সর্বশেষ
             </Link>
 
             {navCategories.map((cat) => {
@@ -617,6 +622,14 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               হোম
             </Link>
 
+            <Link
+              href="/latest-news"
+              onClick={() => setIsMobileOpen(false)}
+              className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
+            >
+              সর্বশেষ
+            </Link>
+
             {navCategories.map((cat) => {
               const catIdStr = getCatId(cat._id) || cat.slug;
               const subCats = getSubcategories(catIdStr);
@@ -652,9 +665,8 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                       className="p-1 text-gray-500 hover:text-primary focus:outline-none"
                     >
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          isOpen ? "rotate-180 text-primary" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : ""
+                          }`}
                       />
                     </button>
                   </div>
