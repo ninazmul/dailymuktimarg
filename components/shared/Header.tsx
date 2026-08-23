@@ -445,11 +445,11 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
             {/* ============ SEARCH BUTTON (LEFT SIDE) links to /search ============ */}
             <Link
               href="/search"
-              title="খুঁজুন"
+              title="অনুসন্ধান"
               className="flex-shrink-0 mr-1 inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white border-2 border-primary/20 text-primary font-extrabold shadow-sm hover:bg-gradient-to-r hover:from-primary hover:to-primary hover:text-white hover:border-primary hover:shadow-md transition-all duration-200 active:scale-[0.98]"
             >
               <Search className="w-4 h-4" />
-              <span className="text-sm">খুঁজুন</span>
+              <span className="text-sm">অনুসন্ধান</span>
             </Link>
 
             {/* Nav Divider */}
@@ -593,7 +593,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                   {/* Footer */}
                   <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
                     <span className="text-[11px] text-gray-500">
-                      পছন্দের খবর দ্রুত খুঁজুন
+                      পছন্দের খবর দ্রুত অনুসন্ধান
                     </span>
 
                     <Link

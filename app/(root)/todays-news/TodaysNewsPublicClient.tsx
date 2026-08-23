@@ -324,11 +324,10 @@ export default function TodaysNewsPublicClient({
             <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
               <button
                 onClick={() => handleCategoryChange("all")}
-                className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition ${
-                  selectedCategory === "all"
+                className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition ${selectedCategory === "all"
                     ? "bg-primary text-white shadow-md shadow-primary/20"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 সব খবর
               </button>
@@ -339,11 +338,10 @@ export default function TodaysNewsPublicClient({
                   <button
                     key={catIdStr}
                     onClick={() => handleCategoryChange(catIdStr)}
-                    className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition ${
-                      selectedCategory === catIdStr
+                    className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition ${selectedCategory === catIdStr
                         ? "bg-primary text-white shadow-md shadow-primary/20"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                      }`}
                   >
                     {cat.name}
                   </button>
@@ -357,7 +355,7 @@ export default function TodaysNewsPublicClient({
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="আজকের খবর খুঁজুন..."
+                placeholder="আজকের খবর অনুসন্ধান..."
                 className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
@@ -550,11 +548,10 @@ export default function TodaysNewsPublicClient({
                       <button
                         key={p}
                         onClick={() => handlePageChange(p)}
-                        className={`w-9 h-9 rounded-xl text-xs font-bold transition ${
-                          initialNewsData.currentPage === p
+                        className={`w-9 h-9 rounded-xl text-xs font-bold transition ${initialNewsData.currentPage === p
                             ? "bg-primary text-white shadow-md shadow-primary/20"
                             : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-100"
-                        }`}
+                          }`}
                       >
                         {toBengaliNumerals(p)}
                       </button>
