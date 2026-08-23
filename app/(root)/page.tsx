@@ -490,7 +490,7 @@ export default async function HomePage() {
             {safeLatest.length > 0 && (
               <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-200/80 shadow-sm">
                 <h2 className="text-lg font-black text-gray-800 border-l-4 border-blue-600 pl-3">
-                  Latest News
+                  সর্বশেষ সংবাদ
                 </h2>
                 <div className="flex flex-col gap-3">
                   {safeLatest.map((item: any) => (
@@ -527,7 +527,7 @@ export default async function HomePage() {
             {safeMostViewed.length > 0 && (
               <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-200/80 shadow-sm">
                 <h2 className="text-lg font-black text-gray-800 border-l-4 border-amber-500 pl-3">
-                  Most Read Articles
+                  সর্বাধিক পঠিত
                 </h2>
                 <div className="flex flex-col gap-3">
                   {safeMostViewed.map((item: any, idx: number) => (
@@ -552,7 +552,7 @@ export default async function HomePage() {
                           {item.title}
                         </h4>
                         <span className="text-[10px] text-gray-400 mt-0.5">
-                          {item.views || 0} views
+                          {item.views || 0} বার পঠিত
                         </span>
                       </div>
                     </Link>

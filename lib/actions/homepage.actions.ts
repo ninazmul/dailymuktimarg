@@ -19,7 +19,7 @@ export async function getHomepageSections(): Promise<IHomepageLayout[]> {
       // Auto-seed default homepage sections if empty
       await HomepageLayout.create([
         {
-          sectionName: "Featured Picks",
+          sectionName: "নির্বাচিত সংবাদ",
           sectionType: "featured",
           layoutType: "grid",
           postsCount: 6,
@@ -27,7 +27,7 @@ export async function getHomepageSections(): Promise<IHomepageLayout[]> {
           order: 0,
         },
         {
-          sectionName: "Trending News",
+          sectionName: "আলোচিত সংবাদ",
           sectionType: "trending",
           layoutType: "slider",
           postsCount: 6,
@@ -35,7 +35,7 @@ export async function getHomepageSections(): Promise<IHomepageLayout[]> {
           order: 1,
         },
         {
-          sectionName: "Video News Gallery",
+          sectionName: "ভিডিও সংবাদ",
           sectionType: "videoGallery",
           layoutType: "grid",
           postsCount: 4,
