@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
+import NewsSidebar from "@/components/shared/NewsSidebar";
 import {
   SEO_DEFAULTS,
   buildPageTitle,
@@ -112,7 +113,7 @@ export default async function CategoryPage({
     ],
   };
 
-  const [articles, totalCount] = await Promise.all([
+  const [articles, totalCount, mostViewed, trendingNews] = await Promise.all([
     News.find(query)
       .select(ARTICLE_CARD_FIELDS)
       .populate("categoryId", "name slug")
@@ -122,10 +123,35 @@ export default async function CategoryPage({
       .limit(limit)
       .lean<any[]>(),
     News.countDocuments(query),
+    News.find({ status: "published" })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ views: -1 })
+      .limit(5)
+      .lean<any[]>(),
+    News.find({ status: "published", trending: true })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ publishDate: -1 })
+      .limit(5)
+      .lean<any[]>(),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
   const safeArticles = JSON.parse(JSON.stringify(articles));
+  const safeMostViewed = JSON.parse(JSON.stringify(mostViewed));
+  let safeTrending = JSON.parse(JSON.stringify(trendingNews));
+
+  if (safeTrending.length === 0) {
+    const fallbackTrending = await News.find({ status: "published" })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ views: -1, publishDate: -1 })
+      .skip(5)
+      .limit(5)
+      .lean<any[]>();
+    safeTrending = JSON.parse(JSON.stringify(fallbackTrending));
+  }
 
   // Sub-categories for sidebar
   const subCats = descendants.filter(
@@ -191,6 +217,10 @@ export default async function CategoryPage({
     isPartOf: { "@id": `${canonicalBase}/#website` },
   };
 
+  const bnNums = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  const toBn = (n: number | string) =>
+    n.toString().replace(/\d/g, (d) => bnNums[parseInt(d, 10)]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <script
@@ -201,8 +231,8 @@ export default async function CategoryPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
       />
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-1">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex-1 min-w-0">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-gray-500 mb-6">
             <Link href="/" className="hover:text-primary">
@@ -247,7 +277,7 @@ export default async function CategoryPage({
 
           {safeArticles.length === 0 ? (
             <div className="text-center p-12 text-gray-500">
-              No articles found in this category.
+              এই বিভাগে কোনো সংবাদ পাওয়া যায়নি।
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -259,7 +289,7 @@ export default async function CategoryPage({
                 >
                   <div className="relative aspect-video">
                     <Image
-                      src={article.featuredImage}
+                      src={article.featuredImage || "/assets/images/logo.png"}
                       alt={article.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -283,7 +313,14 @@ export default async function CategoryPage({
                     )}
                     <p className="text-[10px] text-gray-400 mt-2">
                       {article.publishDate
-                        ? new Date(article.publishDate).toLocaleDateString()
+                        ? new Date(article.publishDate).toLocaleDateString(
+                          "bn-BD",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )
                         : ""}
                     </p>
                   </div>
@@ -309,32 +346,30 @@ export default async function CategoryPage({
                   href={`/category/${slug}?page=${page - 1}`}
                   className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
                 >
-                  ← Previous
+                  ← আগের পাতা
                 </Link>
               )}
               <span className="px-4 py-2 text-sm text-gray-500">
-                Page {page} of {totalPages}
+                পাতা {toBn(page)} / {toBn(totalPages)}
               </span>
               {page < totalPages && (
                 <Link
                   href={`/category/${slug}?page=${page + 1}`}
                   className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
                 >
-                  Next →
+                  পরের পাতা →
                 </Link>
               )}
             </div>
           )}
         </div>
 
-        {/* Sidebar Ads */}
-        {sidebarAds.length > 0 && (
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
-            {sidebarAds.map((ad) => (
-              <Ad key={ad._id.toString()} ad={ad} />
-            ))}
-          </div>
-        )}
+        {/* Unified Sidebar */}
+        <NewsSidebar
+          mostViewedArticles={safeMostViewed}
+          trendingArticles={safeTrending}
+          sidebarAds={sidebarAds}
+        />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import Category from "@/lib/database/models/category.model";
 import Tag from "@/lib/database/models/tag.model";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
+import NewsSidebar from "@/components/shared/NewsSidebar";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -132,7 +133,7 @@ export default async function SearchPage({
     }
   }
 
-  const [articles, totalCount] = await Promise.all([
+  const [articles, totalCount, mostViewed, trendingNews] = await Promise.all([
     News.find(searchFilter)
       .select(ARTICLE_CARD_FIELDS)
       .sort({ publishDate: -1 })
@@ -141,10 +142,35 @@ export default async function SearchPage({
       .limit(limit)
       .lean<any[]>(),
     News.countDocuments(searchFilter),
+    News.find({ status: "published" })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ views: -1 })
+      .limit(5)
+      .lean<any[]>(),
+    News.find({ status: "published", trending: true })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ publishDate: -1 })
+      .limit(5)
+      .lean<any[]>(),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);
   const safeArticles = JSON.parse(JSON.stringify(articles));
+  const safeMostViewed = JSON.parse(JSON.stringify(mostViewed));
+  let safeTrending = JSON.parse(JSON.stringify(trendingNews));
+
+  if (safeTrending.length === 0) {
+    const fallbackTrending = await News.find({ status: "published" })
+      .select(ARTICLE_CARD_FIELDS)
+      .populate("categoryId", "name slug")
+      .sort({ views: -1, publishDate: -1 })
+      .skip(5)
+      .limit(5)
+      .lean<any[]>();
+    safeTrending = JSON.parse(JSON.stringify(fallbackTrending));
+  }
 
   const canonicalBase = SEO_DEFAULTS.canonicalUrlBase;
   const brand = SEO_DEFAULTS.siteBrand;
@@ -162,6 +188,10 @@ export default async function SearchPage({
       },
     ],
   };
+
+  const bnNums = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  const toBn = (n: number | string) =>
+    n.toString().replace(/\d/g, (d) => bnNums[parseInt(d, 10)]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -213,14 +243,14 @@ export default async function SearchPage({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    Tag
+                    ট্যাগ
                   </label>
                   <select
                     name="tag"
                     defaultValue={tagSlug}
                     className="w-full text-sm border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none"
                   >
-                    <option value="">All Tags</option>
+                    <option value="">সকল ট্যাগ</option>
                     {tags.map((t: any) => (
                       <option key={t._id.toString()} value={t.slug}>
                         #{t.name}
@@ -233,13 +263,13 @@ export default async function SearchPage({
                   type="submit"
                   className="w-full bg-primary hover:bg-primary/95 text-white text-sm font-semibold p-2.5 rounded-lg transition"
                 >
-                  Filter Articles
+                  ফিল্টার করুন
                 </button>
                 <Link
                   href="/search"
                   className="block text-center text-xs text-gray-400 hover:text-gray-600 transition"
                 >
-                  Reset Filters
+                  ফিল্টার রিসেট করুন
                 </Link>
               </form>
             </div>
@@ -248,8 +278,7 @@ export default async function SearchPage({
             <div className="lg:col-span-2 space-y-6">
               {safeArticles.length === 0 ? (
                 <div className="text-center p-12 border border-dashed rounded-xl text-gray-500 bg-white">
-                  No matching articles found. Try modifying your search keywords or
-                  tags.
+                  কোনো সংবাদ পাওয়া যায়নি। অনুগ্রহ করে অন্য কীওয়ার্ড দিয়ে চেষ্টা করুন।
                 </div>
               ) : (
                 <>
@@ -284,7 +313,14 @@ export default async function SearchPage({
                           )}
                           <p className="text-[10px] text-gray-400 mt-2">
                             {article.publishDate
-                              ? new Date(article.publishDate).toLocaleDateString()
+                              ? new Date(article.publishDate).toLocaleDateString(
+                                "bn-BD",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                },
+                              )
                               : ""}
                           </p>
                         </div>
@@ -309,18 +345,18 @@ export default async function SearchPage({
                           href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page - 1}`}
                           className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
                         >
-                          ← Previous
+                          ← আগের পাতা
                         </Link>
                       )}
                       <span className="px-4 py-2 text-sm text-gray-500 bg-white border rounded-lg">
-                        Page {page} of {totalPages}
+                        পাতা {toBn(page)} / {toBn(totalPages)}
                       </span>
                       {page < totalPages && (
                         <Link
                           href={`/search?q=${query}&category=${catSlug}&tag=${tagSlug}&page=${page + 1}`}
                           className="px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
                         >
-                          Next →
+                          পরের পাতা →
                         </Link>
                       )}
                     </div>
@@ -331,14 +367,12 @@ export default async function SearchPage({
           </div>
         </div>
 
-        {/* Sidebar Ads */}
-        {sidebarAds.length > 0 && (
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
-            {sidebarAds.map((ad) => (
-              <Ad key={ad._id.toString()} ad={ad} />
-            ))}
-          </div>
-        )}
+        {/* Unified Sidebar */}
+        <NewsSidebar
+          mostViewedArticles={safeMostViewed}
+          trendingArticles={safeTrending}
+          sidebarAds={sidebarAds}
+        />
       </div>
     </div>
   );
