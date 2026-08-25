@@ -11,7 +11,7 @@ import { revalidateTag as _revalidateTag, revalidatePath } from "next/cache";
 const revalidateTag = _revalidateTag as (tag: string) => void;
 
 const NEWS_LIST_FIELDS =
-  "title slug featuredImage categoryId nestedCategoryId reporterId authorId tags publishDate views lead leadPosition status";
+  "title slug featuredImage categoryId nestedCategoryId categoryIds nestedCategoryIds reporterId authorId tags publishDate views lead leadPosition status";
 
 // ===== Helpers =====
 
@@ -74,6 +74,8 @@ export async function getNewsArticles(params: {
         .select(NEWS_LIST_FIELDS)
         .populate("categoryId", "name slug")
         .populate("nestedCategoryId", "name slug")
+        .populate("categoryIds", "name slug")
+        .populate("nestedCategoryIds", "name slug")
         .populate("reporterId", "name image")
         .populate("authorId", "name image")
         .populate("tags", "name slug")
@@ -104,6 +106,8 @@ export async function getNewsArticleBySlug(
     const article = await News.findOne({ slug })
       .populate("categoryId", "name slug")
       .populate("nestedCategoryId", "name slug")
+      .populate("categoryIds", "name slug")
+      .populate("nestedCategoryIds", "name slug")
       .populate("reporterId", "name bio image socialLinks")
       .populate("authorId", "name bio image socialLinks")
       .populate("tags", "name slug")
@@ -162,8 +166,22 @@ export async function createNewsArticle(
     // Auto-set publishDate to now only when status is "published"
     const publishDate = status === "published" ? new Date() : undefined;
 
+    // Sync primary categoryId with first element of categoryIds if provided
+    const resolvedCategoryId =
+      params.categoryIds && params.categoryIds.length > 0
+        ? params.categoryIds[0]
+        : params.categoryId;
+    const resolvedNestedCategoryId =
+      params.nestedCategoryIds && params.nestedCategoryIds.length > 0
+        ? params.nestedCategoryIds[0]
+        : params.nestedCategoryId || undefined;
+
     const newArticle = await News.create({
       ...params,
+      categoryId: resolvedCategoryId,
+      nestedCategoryId: resolvedNestedCategoryId,
+      categoryIds: params.categoryIds || (resolvedCategoryId ? [resolvedCategoryId] : []),
+      nestedCategoryIds: params.nestedCategoryIds || (resolvedNestedCategoryId ? [resolvedNestedCategoryId] : []),
       status,
       slug,
       views: 0,
@@ -244,12 +262,26 @@ export async function updateNewsArticle(
     const publishDate =
       becomingPublished || updatingPublished ? new Date() : article.publishDate;
 
+    // Sync primary categoryId with first element of categoryIds if provided
+    const resolvedCategoryId =
+      params.categoryIds && params.categoryIds.length > 0
+        ? params.categoryIds[0]
+        : params.categoryId;
+    const resolvedNestedCategoryId =
+      params.nestedCategoryIds && params.nestedCategoryIds.length > 0
+        ? params.nestedCategoryIds[0]
+        : params.nestedCategoryId || undefined;
+
     // Explicitly update all fields to prevent Mongoose schema validation gaps
     const updated = await News.findByIdAndUpdate(
       id,
       {
         $set: {
           ...params,
+          categoryId: resolvedCategoryId,
+          nestedCategoryId: resolvedNestedCategoryId,
+          categoryIds: params.categoryIds || (resolvedCategoryId ? [resolvedCategoryId] : []),
+          nestedCategoryIds: params.nestedCategoryIds || (resolvedNestedCategoryId ? [resolvedNestedCategoryId] : []),
           status,
           slug,
           publishDate,

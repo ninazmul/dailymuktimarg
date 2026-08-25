@@ -58,8 +58,10 @@ const formSchema = z.object({
   imageCaption: z.string().optional(),
   gallery: z.array(galleryItemSchema).default([]),
   video: z.string().optional(),
-  categoryId: z.string().min(1, "Category is required"),
+  categoryId: z.string().min(1, "At least one category is required"),
   nestedCategoryId: z.string().optional(),
+  categoryIds: z.array(z.string()).default([]),
+  nestedCategoryIds: z.array(z.string()).default([]),
   tags: z.array(z.string()).default([]),
   reporterId: z.string().optional(),
   authorId: z.string().optional(),
@@ -105,7 +107,6 @@ export default function NewsForm({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sub-categories list computed from active parent Category selection
   const [subCategories, setSubCategories] = useState<ICategory[]>([]);
 
   const normalizeGallery = (g: any[]) => {
@@ -153,8 +154,22 @@ export default function NewsForm({
       imageCaption: (initialData as any)?.imageCaption || "",
       gallery: normalizeGallery(initialData?.gallery || []),
       video: initialData?.video || "",
-      categoryId: initialData?.categoryId?.toString() || "",
-      nestedCategoryId: initialData?.nestedCategoryId?.toString() || "",
+      categoryId: initialData?.categoryId?.toString() ||
+        ((initialData as any)?.categoryIds?.[0]?.toString()) || "",
+      nestedCategoryId: initialData?.nestedCategoryId?.toString() ||
+        ((initialData as any)?.nestedCategoryIds?.[0]?.toString()) || "",
+      categoryIds:
+        (initialData as any)?.categoryIds?.map((c: any) =>
+          c._id?.toString() || c.toString()
+        ) ||
+        (initialData?.categoryId ? [initialData.categoryId.toString()] : []),
+      nestedCategoryIds:
+        (initialData as any)?.nestedCategoryIds?.map((c: any) =>
+          c._id?.toString() || c.toString()
+        ) ||
+        (initialData?.nestedCategoryId
+          ? [initialData.nestedCategoryId.toString()]
+          : []),
       tags:
         initialData?.tags?.map((t: any) => t._id?.toString() || t.toString()) ||
         [],
@@ -178,24 +193,32 @@ export default function NewsForm({
   });
 
   const selectedCategory = watch("categoryId");
+  const selectedCategoryIds = watch("categoryIds");
   const watchTitle = watch("title");
   const watchLead = watch("lead");
   const selectedTags = watch("tags");
 
-  // Dynamic filter for subcategories
+  // Dynamic filter for subcategories — show children of ALL selected parent categories
   useEffect(() => {
-    if (selectedCategory) {
+    const activeCatIds = selectedCategoryIds && selectedCategoryIds.length > 0
+      ? selectedCategoryIds
+      : selectedCategory
+        ? [selectedCategory]
+        : [];
+
+    if (activeCatIds.length > 0) {
       const filtered = categories.filter(
         (c) =>
           c.parentId &&
-          ((c.parentId as any)._id?.toString() || c.parentId.toString()) ===
-            selectedCategory,
+          activeCatIds.includes(
+            (c.parentId as any)._id?.toString() || c.parentId.toString()
+          ),
       );
       setSubCategories(filtered);
     } else {
       setSubCategories([]);
     }
-  }, [selectedCategory, categories]);
+  }, [selectedCategoryIds, selectedCategory, categories]);
 
   // Autofill slug helper
   const handleAutoSlug = () => {
@@ -218,13 +241,26 @@ export default function NewsForm({
             .filter(Boolean)
         : [];
 
+      // Ensure categoryId stays in sync with first selected category
+      const resolvedCategoryId =
+        values.categoryIds && values.categoryIds.length > 0
+          ? values.categoryIds[0]
+          : values.categoryId;
+      const resolvedNestedCategoryId =
+        values.nestedCategoryIds && values.nestedCategoryIds.length > 0
+          ? values.nestedCategoryIds[0]
+          : values.nestedCategoryId || undefined;
+
       // Cast date inputs back to actual ISO date formats - exclude publishDate and schedulePublish as they are auto-managed
       const payload: any = {
         ...values,
         keywords,
+        categoryId: resolvedCategoryId,
+        nestedCategoryId: resolvedNestedCategoryId,
+        categoryIds: values.categoryIds || [],
+        nestedCategoryIds: values.nestedCategoryIds || [],
         publishDate: undefined,
         schedulePublish: undefined,
-        nestedCategoryId: values.nestedCategoryId || undefined,
         reporterId: values.reporterId || undefined,
         authorId: values.authorId || undefined,
       };
@@ -665,32 +701,132 @@ export default function NewsForm({
                 Classification
               </h3>
 
-              {/* Main Category */}
-              <div className="space-y-1.5">
-                <Label>Primary Category *</Label>
-                <Controller
-                  name="categoryId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories
-                          .filter((c) => !c.parentId)
-                          .map((cat) => (
-                            <SelectItem
-                              key={cat._id.toString()}
-                              value={cat._id.toString()}
-                            >
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+              {/* Categories - Multi Select */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">
+                  Categories *{" "}
+                  <span className="text-xs text-gray-400 font-normal">
+                    (select one or more)
+                  </span>
+                </Label>
+
+                {/* Selected category badges */}
+                {selectedCategoryIds && selectedCategoryIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {selectedCategoryIds.map((catId) => {
+                      const cat = categories.find(
+                        (c) => c._id.toString() === catId,
+                      );
+                      if (!cat) return null;
+                      return (
+                        <span
+                          key={catId}
+                          className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/20"
+                        >
+                          {cat.name}
+                          <button
+                            type="button"
+                            className="ml-0.5 hover:text-destructive transition"
+                            onClick={() => {
+                              const next = selectedCategoryIds.filter(
+                                (id) => id !== catId,
+                              );
+                              setValue("categoryIds", next, {
+                                shouldDirty: true,
+                              });
+                              setValue(
+                                "categoryId",
+                                next[0] || "",
+                                { shouldDirty: true },
+                              );
+                              // Remove any sub-categories that belong to this category
+                              const currentSubs =
+                                watch("nestedCategoryIds") || [];
+                              const removedSubs = categories
+                                .filter(
+                                  (c) =>
+                                    c.parentId &&
+                                    ((c.parentId as any)._id?.toString() ||
+                                      c.parentId.toString()) === catId,
+                                )
+                                .map((c) => c._id.toString());
+                              setValue(
+                                "nestedCategoryIds",
+                                currentSubs.filter(
+                                  (id) => !removedSubs.includes(id),
+                                ),
+                                { shouldDirty: true },
+                              );
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Parent category checkbox list */}
+                <div className="max-h-44 overflow-y-auto rounded-md border p-3 space-y-2 bg-white">
+                  {categories
+                    .filter((c) => !c.parentId)
+                    .map((cat) => {
+                      const catId = cat._id.toString();
+                      const isChecked = (selectedCategoryIds || []).includes(
+                        catId,
+                      );
+                      return (
+                        <div
+                          key={catId}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`cat-${catId}`}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              const current = selectedCategoryIds || [];
+                              const next = checked
+                                ? [...current, catId]
+                                : current.filter((id) => id !== catId);
+                              setValue("categoryIds", next, {
+                                shouldDirty: true,
+                              });
+                              setValue("categoryId", next[0] || "", {
+                                shouldDirty: true,
+                              });
+                              // Remove sub-categories of deselected parent
+                              if (!checked) {
+                                const currentSubs =
+                                  watch("nestedCategoryIds") || [];
+                                const removedSubs = categories
+                                  .filter(
+                                    (c) =>
+                                      c.parentId &&
+                                      ((c.parentId as any)._id?.toString() ||
+                                        c.parentId.toString()) === catId,
+                                  )
+                                  .map((c) => c._id.toString());
+                                setValue(
+                                  "nestedCategoryIds",
+                                  currentSubs.filter(
+                                    (id) => !removedSubs.includes(id),
+                                  ),
+                                  { shouldDirty: true },
+                                );
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`cat-${catId}`}
+                            className="cursor-pointer text-sm font-normal"
+                          >
+                            {cat.name}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                </div>
                 {errors.categoryId && (
                   <p className="text-xs text-destructive">
                     {errors.categoryId.message}
@@ -698,36 +834,95 @@ export default function NewsForm({
                 )}
               </div>
 
-              {/* Sub-category */}
-              {subCategories.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label>Sub-category</Label>
-                  <Controller
-                    name="nestedCategoryId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Sub-category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {subCategories.map((sub) => (
-                            <SelectItem
-                              key={sub._id.toString()}
-                              value={sub._id.toString()}
+              {/* Sub-categories - Multi Select (shown only when parent(s) selected) */}
+              {subCategories.length > 0 && (() => {
+                const selectedSubIds = watch("nestedCategoryIds") || [];
+                return (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">
+                      Sub-categories{" "}
+                      <span className="text-xs text-gray-400 font-normal">
+                        (optional, select one or more)
+                      </span>
+                    </Label>
+
+                    {/* Selected sub-category badges */}
+                    {selectedSubIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {selectedSubIds.map((subId) => {
+                          const sub = subCategories.find(
+                            (s) => s._id.toString() === subId,
+                          );
+                          if (!sub) return null;
+                          return (
+                            <span
+                              key={subId}
+                              className="inline-flex items-center gap-1 bg-secondary/40 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200"
                             >
                               {sub.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                              <button
+                                type="button"
+                                className="ml-0.5 hover:text-destructive transition"
+                                onClick={() => {
+                                  const next = selectedSubIds.filter(
+                                    (id) => id !== subId,
+                                  );
+                                  setValue("nestedCategoryIds", next, {
+                                    shouldDirty: true,
+                                  });
+                                  setValue(
+                                    "nestedCategoryId",
+                                    next[0] || "",
+                                    { shouldDirty: true },
+                                  );
+                                }}
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
                     )}
-                  />
-                </div>
-              )}
+
+                    {/* Sub-category checkbox list */}
+                    <div className="max-h-36 overflow-y-auto rounded-md border p-3 space-y-2 bg-white">
+                      {subCategories.map((sub) => {
+                        const subId = sub._id.toString();
+                        const isChecked = selectedSubIds.includes(subId);
+                        return (
+                          <div
+                            key={subId}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`sub-${subId}`}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                const next = checked
+                                  ? [...selectedSubIds, subId]
+                                  : selectedSubIds.filter((id) => id !== subId);
+                                setValue("nestedCategoryIds", next, {
+                                  shouldDirty: true,
+                                });
+                                setValue("nestedCategoryId", next[0] || "", {
+                                  shouldDirty: true,
+                                });
+                              }}
+                            />
+                            <Label
+                              htmlFor={`sub-${subId}`}
+                              className="cursor-pointer text-sm font-normal"
+                            >
+                              {sub.name}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="space-y-2">
                 <Label>Tags</Label>

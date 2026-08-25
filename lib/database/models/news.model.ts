@@ -18,8 +18,10 @@ export interface INews extends Document {
   imageCaption?: string;
   gallery: GalleryItem[];
   video?: string;
-  categoryId: Types.ObjectId; // References Category
-  nestedCategoryId?: Types.ObjectId; // References Category
+  categoryId: Types.ObjectId; // Primary category (required, backward compat)
+  nestedCategoryId?: Types.ObjectId; // Primary sub-category (backward compat)
+  categoryIds: Types.ObjectId[]; // All selected parent categories
+  nestedCategoryIds: Types.ObjectId[]; // All selected sub-categories
   tags: Types.ObjectId[]; // References Tag
   reporterId?: Types.ObjectId; // References Reporter
   authorId?: Types.ObjectId; // References Author
@@ -69,6 +71,8 @@ const NewsSchema = new Schema(
       ref: "Category",
       default: null,
     },
+    categoryIds: [{ type: Schema.Types.ObjectId, ref: "Category", default: [] }],
+    nestedCategoryIds: [{ type: Schema.Types.ObjectId, ref: "Category", default: [] }],
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
     reporterId: { type: Schema.Types.ObjectId, ref: "Reporter", default: null },
     authorId: { type: Schema.Types.ObjectId, ref: "Author", default: null },

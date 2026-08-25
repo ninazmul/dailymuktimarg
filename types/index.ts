@@ -44,6 +44,8 @@ export type NewsFormParams = {
   video?: string;
   categoryId: string;
   nestedCategoryId?: string;
+  categoryIds?: string[];
+  nestedCategoryIds?: string[];
   tags?: string[];
   reporterId?: string;
   authorId?: string;

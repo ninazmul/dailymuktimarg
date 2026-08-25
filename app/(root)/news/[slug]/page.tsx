@@ -140,6 +140,9 @@ export default async function ArticlePage({ params }: PageProps) {
       { returnDocument: "after" },
     )
       .populate("categoryId", "name slug")
+      .populate("nestedCategoryId", "name slug")
+      .populate("categoryIds", "name slug")
+      .populate("nestedCategoryIds", "name slug")
       .populate("tags", "name slug")
       .populate("authorId", "name")
       .populate("reporterId", "name")
@@ -509,15 +512,55 @@ export default async function ArticlePage({ params }: PageProps) {
             </span>
           </nav>
 
-          {/* Category Badge */}
-          {article.categoryId && (
-            <Link
-              href={`/category/${article.categoryId.slug}`}
-              className="inline-block text-xs font-bold bg-primary text-white px-3 py-1 rounded-full mb-3"
-            >
-              {article.categoryId.name}
-            </Link>
-          )}
+          {/* Category & Sub-category Badges */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {/* Primary category */}
+            {article.categoryId && (
+              <Link
+                href={`/category/${article.categoryId.slug}`}
+                className="inline-block text-xs font-bold bg-primary text-white px-3 py-1 rounded-full"
+              >
+                {article.categoryId.name}
+              </Link>
+            )}
+            {/* Additional categories (categoryIds minus the primary one) */}
+            {Array.isArray(article.categoryIds) &&
+              article.categoryIds
+                .filter(
+                  (c: any) =>
+                    c._id?.toString() !== article.categoryId?._id?.toString(),
+                )
+                .map((c: any) => (
+                  <Link
+                    key={c._id}
+                    href={`/category/${c.slug}`}
+                    className="inline-block text-xs font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 hover:bg-primary/20 transition"
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+            {/* Sub-categories */}
+            {Array.isArray(article.nestedCategoryIds) &&
+              article.nestedCategoryIds.map((sub: any) => (
+                <Link
+                  key={sub._id}
+                  href={`/category/${sub.slug}`}
+                  className="inline-block text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full border border-gray-200 hover:bg-gray-200 transition"
+                >
+                  {sub.name}
+                </Link>
+              ))}
+            {/* Legacy single nestedCategoryId fallback */}
+            {!Array.isArray(article.nestedCategoryIds) &&
+              article.nestedCategoryId && (
+                <Link
+                  href={`/category/${article.nestedCategoryId.slug}`}
+                  className="inline-block text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full border border-gray-200 hover:bg-gray-200 transition"
+                >
+                  {article.nestedCategoryId.name}
+                </Link>
+              )}
+          </div>
 
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2">
