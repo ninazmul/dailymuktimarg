@@ -107,15 +107,15 @@ export async function generateMetadata({
           : seoRes.siteKeywords.slice(0, 8),
       images: absoluteFeatured
         ? [
-            {
-              url: absoluteFeatured,
-              width: 1200,
-              height: 675,
-              alt: article.title,
-              type: "image/webp",
-              secureUrl: absoluteFeatured,
-            },
-          ]
+          {
+            url: absoluteFeatured,
+            width: 1200,
+            height: 675,
+            alt: article.title,
+            type: "image/webp",
+            secureUrl: absoluteFeatured,
+          },
+        ]
         : undefined,
     },
     twitter: {
@@ -176,13 +176,13 @@ export default async function ArticlePage({ params }: PageProps) {
     status: "published",
     ...(allArticleCatIds.length > 0
       ? {
-          $or: [
-            { categoryId: { $in: allArticleCatIds } },
-            { nestedCategoryId: { $in: allArticleCatIds } },
-            { categoryIds: { $in: allArticleCatIds } },
-            { nestedCategoryIds: { $in: allArticleCatIds } },
-          ],
-        }
+        $or: [
+          { categoryId: { $in: allArticleCatIds } },
+          { nestedCategoryId: { $in: allArticleCatIds } },
+          { categoryIds: { $in: allArticleCatIds } },
+          { nestedCategoryIds: { $in: allArticleCatIds } },
+        ],
+      }
       : {}),
     _id: { $ne: article._id },
   })
@@ -236,14 +236,14 @@ export default async function ArticlePage({ params }: PageProps) {
   const tagNames =
     Array.isArray(article.tags) && article.tags.length
       ? article.tags
-          .map((t: any) =>
-            typeof t === "object" && t.name
-              ? t.name
-              : typeof t === "string"
-                ? t
-                : null,
-          )
-          .filter(Boolean)
+        .map((t: any) =>
+          typeof t === "object" && t.name
+            ? t.name
+            : typeof t === "string"
+              ? t
+              : null,
+        )
+        .filter(Boolean)
       : [];
 
   const speakableContent: string[] = [];
@@ -280,12 +280,12 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const authorEntity = article.authorId?.name
     ? {
-        "@type": "Person",
-        name: article.authorId.name,
-        url: article.reporterId
-          ? `${canonicalBase}/#reporter-${article.reporterId}`
-          : `${canonicalBase}/about`,
-      }
+      "@type": "Person",
+      name: article.authorId.name,
+      url: article.reporterId
+        ? `${canonicalBase}/#reporter-${article.reporterId}`
+        : `${canonicalBase}/about`,
+    }
     : publisherOrg;
 
   const videoEmbed = article.video ? getVideoEmbedUrl(article.video) : null;
@@ -304,9 +304,9 @@ export default async function ArticlePage({ params }: PageProps) {
     wordCount:
       typeof article.content === "string"
         ? article.content
-            .replace(/<[^>]+>/g, "")
-            .trim()
-            .split(/\s+/).length
+          .replace(/<[^>]+>/g, "")
+          .trim()
+          .split(/\s+/).length
         : undefined,
     keywords:
       Array.isArray(article.keywords) && article.keywords.length
@@ -315,16 +315,16 @@ export default async function ArticlePage({ params }: PageProps) {
     articleSection: article.categoryId?.name || undefined,
     image: absoluteFeatured
       ? [
-          {
-            "@type": "ImageObject",
-            url: absoluteFeatured,
-            width: 1920,
-            height: 1080,
-            caption: article.imageCaption || article.title,
-            representativeOfPage: "True",
-            inLanguage: "bn-BD",
-          },
-        ]
+        {
+          "@type": "ImageObject",
+          url: absoluteFeatured,
+          width: 1920,
+          height: 1080,
+          caption: article.imageCaption || article.title,
+          representativeOfPage: "True",
+          inLanguage: "bn-BD",
+        },
+      ]
       : undefined,
     thumbnailUrl: absoluteFeatured || undefined,
     datePublished,
@@ -333,25 +333,25 @@ export default async function ArticlePage({ params }: PageProps) {
     author: authorEntity,
     creator: article.reporterId?.name
       ? {
-          "@type": "Person",
-          name: article.reporterId.name,
-        }
+        "@type": "Person",
+        name: article.reporterId.name,
+      }
       : authorEntity,
     contributor: tagNames.length
       ? tagNames.map((name: string) => ({
-          "@type": "Organization",
-          name,
-        }))
+        "@type": "Organization",
+        name,
+      }))
       : undefined,
     editor: article.authorId?.name
       ? {
-          "@type": "Person",
-          name: article.authorId.name,
-        }
+        "@type": "Person",
+        name: article.authorId.name,
+      }
       : {
-          "@type": "Person",
-          name: brand,
-        },
+        "@type": "Person",
+        name: brand,
+      },
     publisher: publisherOrg,
     sourceOrganization: publisherOrg,
     copyrightHolder: {
@@ -366,10 +366,10 @@ export default async function ArticlePage({ params }: PageProps) {
     articleBody:
       typeof article.content === "string"
         ? article.content
-            .replace(/<[^>]+>/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 4000)
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 4000)
         : undefined,
     isAccessibleForFree: true,
     pageStart: 1,
@@ -378,23 +378,23 @@ export default async function ArticlePage({ params }: PageProps) {
     printEdition: "Online Edition",
     speakable: speakableText
       ? {
-          "@type": "SpeakableSpecification",
-          cssSelector: ["h1", ".prose p:first-of-type"],
-          xpath: ["/html/body/h1", "/html/body//p[1]"],
-        }
+        "@type": "SpeakableSpecification",
+        cssSelector: ["h1", ".prose p:first-of-type"],
+        xpath: ["/html/body/h1", "/html/body//p[1]"],
+      }
       : undefined,
     video:
       videoEmbed || article.video
         ? {
-            "@type": "VideoObject",
-            name: article.title,
-            description: article.summary || article.title,
-            thumbnailUrl: absoluteFeatured || undefined,
-            embedUrl: videoEmbed || undefined,
-            contentUrl: article.video || undefined,
-            uploadDate: datePublished,
-            publisher: publisherOrg,
-          }
+          "@type": "VideoObject",
+          name: article.title,
+          description: article.summary || article.title,
+          thumbnailUrl: absoluteFeatured || undefined,
+          embedUrl: videoEmbed || undefined,
+          contentUrl: article.video || undefined,
+          uploadDate: datePublished,
+          publisher: publisherOrg,
+        }
         : undefined,
   };
 
@@ -438,18 +438,18 @@ export default async function ArticlePage({ params }: PageProps) {
     lastReviewed: dateModified,
     reviewedBy: article.authorId?.name
       ? {
-          "@type": "Person",
-          name: article.authorId.name,
-        }
+        "@type": "Person",
+        name: article.authorId.name,
+      }
       : {
-          "@type": "Organization",
-          name: brand,
-        },
+        "@type": "Organization",
+        name: brand,
+      },
     primaryImageOfPage: absoluteFeatured
       ? {
-          "@type": "ImageObject",
-          url: absoluteFeatured,
-        }
+        "@type": "ImageObject",
+        url: absoluteFeatured,
+      }
       : undefined,
     publisher: {
       "@id": `${canonicalBase}/#organization`,
@@ -473,13 +473,13 @@ export default async function ArticlePage({ params }: PageProps) {
       },
       ...(article.categoryId
         ? [
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: article.categoryId.name,
-              item: `${canonicalBase}/category/${article.categoryId.slug}`,
-            },
-          ]
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: article.categoryId.name,
+            item: `${canonicalBase}/category/${article.categoryId.slug}`,
+          },
+        ]
         : []),
       {
         "@type": "ListItem",
@@ -592,7 +592,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* Subtitle */}
           {article.subtitle && (
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+            <h2 className="text-xl font-semibold text-primary mb-4">
               {article.subtitle}
             </h2>
           )}
