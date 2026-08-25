@@ -108,19 +108,31 @@ export default async function SearchPage({
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
 
   // Construct search query
-  const searchFilter: any = { status: "published" };
+  const searchFilter: any = {
+    status: "published",
+  };
+  const andConditions: any[] = [];
 
   if (query) {
-    searchFilter.$or = [
-      { title: { $regex: query, $options: "i" } },
-      { slug: { $regex: query, $options: "i" } },
-    ];
+    andConditions.push({
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { slug: { $regex: query, $options: "i" } },
+      ],
+    });
   }
 
   if (catSlug) {
     const categoryDoc: any = await Category.findOne({ slug: catSlug }).lean();
     if (categoryDoc) {
-      searchFilter.categoryId = categoryDoc._id;
+      andConditions.push({
+        $or: [
+          { categoryId: categoryDoc._id },
+          { nestedCategoryId: categoryDoc._id },
+          { categoryIds: categoryDoc._id },
+          { nestedCategoryIds: categoryDoc._id },
+        ],
+      });
     }
   }
 
@@ -131,11 +143,18 @@ export default async function SearchPage({
     }
   }
 
+  if (andConditions.length > 0) {
+    searchFilter.$and = andConditions;
+  }
+
   const [articles, totalCount] = await Promise.all([
     News.find(searchFilter)
       .select(ARTICLE_CARD_FIELDS)
       .sort({ publishDate: -1 })
       .populate("categoryId", "name slug")
+      .populate("nestedCategoryId", "name slug")
+      .populate("categoryIds", "name slug")
+      .populate("nestedCategoryIds", "name slug")
       .skip((page - 1) * limit)
       .limit(limit)
       .lean<any[]>(),

@@ -225,7 +225,13 @@ export default async function HomePage() {
       }
 
       if (section.categoryId) {
-        query.categoryId = section.categoryId._id || section.categoryId;
+        const catId = section.categoryId._id || section.categoryId;
+        query.$or = [
+          { categoryId: catId },
+          { nestedCategoryId: catId },
+          { categoryIds: catId },
+          { nestedCategoryIds: catId },
+        ];
       }
 
       const articles = await News.find(query)

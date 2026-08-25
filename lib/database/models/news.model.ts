@@ -104,6 +104,9 @@ const NewsSchema = new Schema(
 // Indexes for high performance queries
 NewsSchema.index({ status: 1, publishDate: -1 });
 NewsSchema.index({ categoryId: 1, status: 1, publishDate: -1 });
+NewsSchema.index({ nestedCategoryId: 1, status: 1, publishDate: -1 });
+NewsSchema.index({ categoryIds: 1, status: 1, publishDate: -1 });
+NewsSchema.index({ nestedCategoryIds: 1, status: 1, publishDate: -1 });
 NewsSchema.index({ tags: 1, status: 1 });
 NewsSchema.index({ views: -1, status: 1 });
 NewsSchema.index({ breaking: 1, status: 1, publishDate: -1 });

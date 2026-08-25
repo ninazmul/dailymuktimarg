@@ -52,17 +52,31 @@ export async function getNewsArticles(params: {
     const skip = (page - 1) * limit;
 
     const query: any = {};
+    const andConditions: any[] = [];
+
     if (params.search) {
-      query.$or = [
-        { title: new RegExp(params.search, "i") },
-        { subtitle: new RegExp(params.search, "i") },
-      ];
+      andConditions.push({
+        $or: [
+          { title: new RegExp(params.search, "i") },
+          { subtitle: new RegExp(params.search, "i") },
+        ],
+      });
     }
     if (params.categoryId) {
-      query.categoryId = params.categoryId;
+      andConditions.push({
+        $or: [
+          { categoryId: params.categoryId },
+          { nestedCategoryId: params.categoryId },
+          { categoryIds: params.categoryId },
+          { nestedCategoryIds: params.categoryId },
+        ],
+      });
     }
     if (params.status && params.status !== "all") {
       query.status = params.status;
+    }
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     const sortField = params.sortBy || "publishDate";
@@ -470,14 +484,28 @@ export async function getTodaysNewsArticles(params?: {
     const baseQuery: any = {
       status: "published",
     };
+    const andConditions: any[] = [];
 
     if (params?.categoryId && params.categoryId !== "all") {
-      baseQuery.categoryId = params.categoryId;
+      andConditions.push({
+        $or: [
+          { categoryId: params.categoryId },
+          { nestedCategoryId: params.categoryId },
+          { categoryIds: params.categoryId },
+          { nestedCategoryIds: params.categoryId },
+        ],
+      });
     }
 
     if (params?.search) {
       const searchRegex = new RegExp(params.search, "i");
-      baseQuery.$or = [{ title: searchRegex }, { summary: searchRegex }];
+      andConditions.push({
+        $or: [{ title: searchRegex }, { summary: searchRegex }],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      baseQuery.$and = andConditions;
     }
 
     const todayQuery = {

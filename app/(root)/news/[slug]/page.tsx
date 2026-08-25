@@ -160,13 +160,36 @@ export default async function ArticlePage({ params }: PageProps) {
   const sidebarAds = activeAds.filter((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
 
-  // Related articles
+  // Related articles (matching any primary, secondary or multiple category)
+  const allArticleCatIds = [
+    article.categoryId?._id || article.categoryId,
+    article.nestedCategoryId?._id || article.nestedCategoryId,
+    ...(Array.isArray(article.categoryIds)
+      ? article.categoryIds.map((c: any) => c?._id || c)
+      : []),
+    ...(Array.isArray(article.nestedCategoryIds)
+      ? article.nestedCategoryIds.map((c: any) => c?._id || c)
+      : []),
+  ].filter(Boolean);
+
   const related = await News.find({
     status: "published",
-    categoryId: article.categoryId?._id,
+    ...(allArticleCatIds.length > 0
+      ? {
+          $or: [
+            { categoryId: { $in: allArticleCatIds } },
+            { nestedCategoryId: { $in: allArticleCatIds } },
+            { categoryIds: { $in: allArticleCatIds } },
+            { nestedCategoryIds: { $in: allArticleCatIds } },
+          ],
+        }
+      : {}),
     _id: { $ne: article._id },
   })
     .populate("categoryId", "name slug")
+    .populate("nestedCategoryId", "name slug")
+    .populate("categoryIds", "name slug")
+    .populate("nestedCategoryIds", "name slug")
     .sort({ publishDate: -1 })
     .limit(6)
     .lean<any[]>();

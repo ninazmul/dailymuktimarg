@@ -17,7 +17,7 @@ import {
 } from "@/lib/seo";
 
 const ARTICLE_CARD_FIELDS =
-  "title slug summary featuredImage categoryId nestedCategoryId publishDate";
+  "title slug summary featuredImage categoryId nestedCategoryId categoryIds nestedCategoryIds publishDate";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -98,10 +98,13 @@ export default async function CategoryPage({
   const sidebarAds = activeAds.filter((ad) => ad.placement === "sidebar");
   const inlineAds = activeAds.filter((ad) => ad.placement === "inline");
 
-  // Find all sub-categories via materialized path
+  // Find all sub-categories via materialized path and parentId
   const allCatIds = [category._id];
   const descendants = await Category.find({
-    path: new RegExp(`,${category.slug},`),
+    $or: [
+      { path: new RegExp(`,${category.slug},`) },
+      { parentId: category._id },
+    ],
   }).lean<any[]>();
   descendants.forEach((d) => allCatIds.push(d._id));
 
@@ -110,6 +113,8 @@ export default async function CategoryPage({
     $or: [
       { categoryId: { $in: allCatIds } },
       { nestedCategoryId: { $in: allCatIds } },
+      { categoryIds: { $in: allCatIds } },
+      { nestedCategoryIds: { $in: allCatIds } },
     ],
   };
 
@@ -118,6 +123,8 @@ export default async function CategoryPage({
       .select(ARTICLE_CARD_FIELDS)
       .populate("categoryId", "name slug")
       .populate("nestedCategoryId", "name slug")
+      .populate("categoryIds", "name slug")
+      .populate("nestedCategoryIds", "name slug")
       .sort({ publishDate: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
