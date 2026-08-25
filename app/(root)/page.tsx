@@ -76,7 +76,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const ARTICLE_CARD_FIELDS =
-  "title slug summary featuredImage categoryId publishDate views leadPosition gallery video featured trending breaking";
+  "title slug summary featuredImage categoryId nestedCategoryId categoryIds nestedCategoryIds publishDate views leadPosition gallery video featured trending breaking";
 
 export default async function HomePage() {
   await connectToDatabase();
@@ -103,6 +103,9 @@ export default async function HomePage() {
   })
     .select(`${ARTICLE_CARD_FIELDS} lead`)
     .populate("categoryId", "name slug")
+    .populate("nestedCategoryId", "name slug")
+    .populate("categoryIds", "name slug")
+    .populate("nestedCategoryIds", "name slug")
     .sort({ leadPosition: 1 })
     .limit(12)
     .lean();
@@ -113,6 +116,9 @@ export default async function HomePage() {
   })
     .select(ARTICLE_CARD_FIELDS)
     .populate("categoryId", "name slug")
+    .populate("nestedCategoryId", "name slug")
+    .populate("categoryIds", "name slug")
+    .populate("nestedCategoryIds", "name slug")
     .sort({ publishDate: -1 })
     .limit(6)
     .lean();
@@ -123,6 +129,9 @@ export default async function HomePage() {
   })
     .select(ARTICLE_CARD_FIELDS)
     .populate("categoryId", "name slug")
+    .populate("nestedCategoryId", "name slug")
+    .populate("categoryIds", "name slug")
+    .populate("nestedCategoryIds", "name slug")
     .sort({ views: -1 })
     .limit(5)
     .lean();
@@ -351,9 +360,13 @@ export default async function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        {safeLeads[0].categoryId?.name && (
+                        {(safeLeads[0].nestedCategoryId?.name ||
+                          safeLeads[0].categoryId?.name ||
+                          safeLeads[0].categoryIds?.[0]?.name) && (
                           <span className="text-xs font-bold bg-primary text-white px-2 py-1 rounded inline-block">
-                            {safeLeads[0].categoryId.name}
+                            {safeLeads[0].nestedCategoryId?.name ||
+                              safeLeads[0].categoryId?.name ||
+                              safeLeads[0].categoryIds?.[0]?.name}
                           </span>
                         )}
                       </div>
@@ -421,9 +434,13 @@ export default async function HomePage() {
                   </div>
                   {/* Text */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-                    {article.categoryId?.name && (
+                    {(article.nestedCategoryId?.name ||
+                      article.categoryId?.name ||
+                      article.categoryIds?.[0]?.name) && (
                       <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                        {article.categoryId.name}
+                        {article.nestedCategoryId?.name ||
+                          article.categoryId?.name ||
+                          article.categoryIds?.[0]?.name}
                       </span>
                     )}
                     <h4 className="text-sm font-extrabold text-gray-900 line-clamp-2 group-hover:text-primary transition leading-snug">
@@ -514,9 +531,13 @@ export default async function HomePage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        {item.categoryId?.name && (
+                        {(item.nestedCategoryId?.name ||
+                          item.categoryId?.name ||
+                          item.categoryIds?.[0]?.name) && (
                           <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
-                            {item.categoryId.name}
+                            {item.nestedCategoryId?.name ||
+                              item.categoryId?.name ||
+                              item.categoryIds?.[0]?.name}
                           </span>
                         )}
                         <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition">

@@ -100,13 +100,20 @@ export default function HomepageSection({
   };
 
   // Card Badges Helper Component
-  const ArticleBadges = ({ article }: { article: any }) => (
-    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-      {article.categoryId?.name && (
-        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-          {article.categoryId.name}
-        </span>
-      )}
+  const ArticleBadges = ({ article }: { article: any }) => {
+    const catName =
+      article.nestedCategoryId?.name ||
+      article.categoryId?.name ||
+      article.categoryIds?.[0]?.name ||
+      article.nestedCategoryIds?.[0]?.name;
+
+    return (
+      <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+        {catName && (
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+            {catName}
+          </span>
+        )}
       {article.featured && (
         <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
           নির্বাচিত
@@ -129,7 +136,8 @@ export default function HomepageSection({
         </span>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <section

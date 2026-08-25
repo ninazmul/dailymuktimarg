@@ -17,6 +17,20 @@ import {
 } from "lucide-react";
 import { ICategory } from "@/lib/database/models/category.model";
 
+export type TodaysNewsArticle = {
+  _id: string;
+  title: string;
+  slug: string;
+  summary?: string;
+  featuredImage: string;
+  publishDate?: string;
+  views?: number;
+  categoryId?: { _id: any; name: string; slug: string };
+  nestedCategoryId?: { _id: any; name: string; slug: string };
+  categoryIds?: { _id: any; name: string; slug: string }[];
+  nestedCategoryIds?: { _id: any; name: string; slug: string }[];
+};
+
 interface NewsItem {
   _id: any;
   title: string;
@@ -25,6 +39,8 @@ interface NewsItem {
   summary?: string;
   featuredImage: string;
   categoryId?: { _id: any; name: string; slug: string };
+  nestedCategoryId?: { _id: any; name: string; slug: string };
+  categoryIds?: { _id: any; name: string; slug: string }[];
   publishDate?: string;
   views?: number;
   lead?: boolean;
@@ -122,9 +138,13 @@ function TodaysSidebar({ data }: { data: SidebarData }) {
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  {item.categoryId?.name && (
+                  {(item.nestedCategoryId?.name ||
+                    item.categoryId?.name ||
+                    item.categoryIds?.[0]?.name) && (
                     <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
-                      {item.categoryId.name}
+                      {item.nestedCategoryId?.name ||
+                        item.categoryId?.name ||
+                        item.categoryIds?.[0]?.name}
                     </span>
                   )}
                   <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition leading-snug">
@@ -394,9 +414,13 @@ export default function TodaysNewsPublicClient({
 
                     <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-4">
                       <div className="space-y-3">
-                        {leadArticle.categoryId && (
+                        {(leadArticle.nestedCategoryId ||
+                          leadArticle.categoryId ||
+                          leadArticle.categoryIds?.[0]) && (
                           <span className="text-xs font-extrabold text-primary uppercase tracking-wider bg-primary/10 px-2.5 py-1 rounded-md">
-                            {leadArticle.categoryId.name}
+                            {leadArticle.nestedCategoryId?.name ||
+                              leadArticle.categoryId?.name ||
+                              leadArticle.categoryIds?.[0]?.name}
                           </span>
                         )}
 
@@ -450,9 +474,13 @@ export default function TodaysNewsPublicClient({
 
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
-                            {item.categoryId && (
+                            {(item.nestedCategoryId ||
+                              item.categoryId ||
+                              item.categoryIds?.[0]) && (
                               <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                                {item.categoryId.name}
+                                {item.nestedCategoryId?.name ||
+                                  item.categoryId?.name ||
+                                  item.categoryIds?.[0]?.name}
                               </span>
                             )}
                             <span className="text-xs text-gray-400 flex items-center gap-1">
@@ -495,9 +523,13 @@ export default function TodaysNewsPublicClient({
                             fill
                             className="object-cover group-hover:scale-105 transition duration-300"
                           />
-                          {item.categoryId && (
+                          {(item.nestedCategoryId ||
+                            item.categoryId ||
+                            item.categoryIds?.[0]) && (
                             <span className="absolute top-3 left-3 bg-primary/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-sm backdrop-blur-sm">
-                              {item.categoryId.name}
+                              {item.nestedCategoryId?.name ||
+                                item.categoryId?.name ||
+                                item.categoryIds?.[0]?.name}
                             </span>
                           )}
                         </div>

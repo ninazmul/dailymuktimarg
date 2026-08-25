@@ -14,6 +14,21 @@ interface NewsItem {
     name?: string;
     slug?: string;
   };
+  nestedCategoryId?: {
+    _id?: string;
+    name?: string;
+    slug?: string;
+  };
+  categoryIds?: {
+    _id?: string;
+    name?: string;
+    slug?: string;
+  }[];
+  nestedCategoryIds?: {
+    _id?: string;
+    name?: string;
+    slug?: string;
+  }[];
 }
 
 interface NewsSidebarProps {
@@ -77,9 +92,13 @@ export default function NewsSidebar({
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  {item.categoryId?.name && (
+                  {(item.nestedCategoryId?.name ||
+                    item.categoryId?.name ||
+                    item.categoryIds?.[0]?.name) && (
                     <span className="text-[10px] font-bold text-primary uppercase tracking-wider mb-0.5">
-                      {item.categoryId.name}
+                      {item.nestedCategoryId?.name ||
+                        item.categoryId?.name ||
+                        item.categoryIds?.[0]?.name}
                     </span>
                   )}
                   <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition leading-snug">
@@ -114,9 +133,13 @@ export default function NewsSidebar({
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  {item.categoryId?.name && (
+                  {(item.nestedCategoryId?.name ||
+                    item.categoryId?.name ||
+                    item.categoryIds?.[0]?.name) && (
                     <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">
-                      {item.categoryId.name}
+                      {item.nestedCategoryId?.name ||
+                        item.categoryId?.name ||
+                        item.categoryIds?.[0]?.name}
                     </span>
                   )}
                   <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition leading-snug">
@@ -199,9 +222,13 @@ export default function NewsSidebar({
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  {item.categoryId?.name && (
+                  {(item.nestedCategoryId?.name ||
+                    item.categoryId?.name ||
+                    item.categoryIds?.[0]?.name) && (
                     <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-0.5">
-                      {item.categoryId.name}
+                      {item.nestedCategoryId?.name ||
+                        item.categoryId?.name ||
+                        item.categoryIds?.[0]?.name}
                     </span>
                   )}
                   <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition leading-snug">

@@ -297,7 +297,47 @@ export default function NewsClient({
                     {article.title}
                   </TableCell>
                   <TableCell>
-                    {(article.categoryId as any)?.name || "Uncategorized"}
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      {(() => {
+                        const allCats: string[] = [];
+                        if ((article.categoryId as any)?.name) {
+                          allCats.push((article.categoryId as any).name);
+                        }
+                        if (Array.isArray((article as any).categoryIds)) {
+                          (article as any).categoryIds.forEach((c: any) => {
+                            if (c?.name && !allCats.includes(c.name)) allCats.push(c.name);
+                          });
+                        }
+                        if (Array.isArray((article as any).nestedCategoryIds)) {
+                          (article as any).nestedCategoryIds.forEach((c: any) => {
+                            if (c?.name && !allCats.includes(c.name)) allCats.push(c.name);
+                          });
+                        }
+                        if (
+                          (article as any).nestedCategoryId?.name &&
+                          !allCats.includes((article as any).nestedCategoryId.name)
+                        ) {
+                          allCats.push((article as any).nestedCategoryId.name);
+                        }
+
+                        if (allCats.length === 0) {
+                          return <span className="text-gray-400 text-xs">Uncategorized</span>;
+                        }
+
+                        return allCats.map((catName, idx) => (
+                          <span
+                            key={idx}
+                            className={`text-[11px] px-2 py-0.5 rounded-full ${
+                              idx === 0
+                                ? "bg-primary/10 text-primary font-medium border border-primary/20"
+                                : "bg-gray-100 text-gray-600 font-normal border border-gray-200"
+                            }`}
+                          >
+                            {catName}
+                          </span>
+                        ));
+                      })()}
+                    </div>
                   </TableCell>
                   <TableCell className="text-xs text-gray-500">
                     {new Date(article.publishDate || "").toLocaleDateString()}

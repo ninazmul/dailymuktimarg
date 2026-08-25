@@ -40,7 +40,26 @@ const statusStyles: Record<string, string> = {
 };
 
 const DASHBOARD_STORY_FIELDS =
-  "title slug categoryId publishDate updatedAt views status leadPosition";
+  "title slug categoryId nestedCategoryId categoryIds nestedCategoryIds publishDate updatedAt views status leadPosition";
+
+function getStoryCategoryLabel(story: any) {
+  const names: string[] = [];
+  if (story.categoryId?.name) names.push(story.categoryId.name);
+  if (Array.isArray(story.categoryIds)) {
+    story.categoryIds.forEach((c: any) => {
+      if (c?.name && !names.includes(c.name)) names.push(c.name);
+    });
+  }
+  if (Array.isArray(story.nestedCategoryIds)) {
+    story.nestedCategoryIds.forEach((c: any) => {
+      if (c?.name && !names.includes(c.name)) names.push(c.name);
+    });
+  }
+  if (story.nestedCategoryId?.name && !names.includes(story.nestedCategoryId.name)) {
+    names.push(story.nestedCategoryId.name);
+  }
+  return names.length > 0 ? names.join(", ") : "Uncategorized";
+}
 
 function formatDate(value?: Date | string | null) {
   if (!value) return "Unscheduled";
@@ -93,25 +112,60 @@ export default async function DashboardPage() {
           News.find()
             .select(DASHBOARD_STORY_FIELDS)
             .populate("categoryId", "name slug")
+            .populate("nestedCategoryId", "name slug")
+            .populate("categoryIds", "name slug")
+            .populate("nestedCategoryIds", "name slug")
             .sort({ views: -1, publishDate: -1 })
             .limit(5)
             .lean(),
           News.find({ status: { $in: ["draft", "review"] } })
             .select(DASHBOARD_STORY_FIELDS)
             .populate("categoryId", "name slug")
+            .populate("nestedCategoryId", "name slug")
+            .populate("categoryIds", "name slug")
+            .populate("nestedCategoryIds", "name slug")
             .sort({ updatedAt: -1 })
             .limit(6)
             .lean(),
           News.find({ lead: true })
             .select(DASHBOARD_STORY_FIELDS)
             .populate("categoryId", "name slug")
+            .populate("nestedCategoryId", "name slug")
+            .populate("categoryIds", "name slug")
+            .populate("nestedCategoryIds", "name slug")
             .sort({ leadPosition: 1 })
             .limit(6)
             .lean(),
           News.aggregate([
-            { $group: { _id: "$categoryId", count: { $sum: 1 }, views: { $sum: "$views" } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 },
+            {
+              $project: {
+                allCategoryIds: {
+                  $filter: {
+                    input: {
+                      $setUnion: [
+                        { $ifNull: ["$categoryIds", []] },
+                        { $ifNull: ["$nestedCategoryIds", []] },
+                        { $cond: [{ $ifNull: ["$categoryId", false] }, ["$categoryId"], []] },
+                        { $cond: [{ $ifNull: ["$nestedCategoryId", false] }, ["$nestedCategoryId"], []] },
+                      ],
+                    },
+                    as: "cat",
+                    cond: { $ne: ["$$cat", null] },
+                  },
+                },
+                views: { $ifNull: ["$views", 0] },
+              },
+            },
+            { $unwind: "$allCategoryIds" },
+            {
+              $group: {
+                _id: "$allCategoryIds",
+                count: { $sum: 1 },
+                views: { $sum: "$views" },
+              },
+            },
+            { $sort: { count: -1, views: -1 } },
+            { $limit: 6 },
             {
               $lookup: {
                 from: "categories",
@@ -120,7 +174,7 @@ export default async function DashboardPage() {
                 as: "category",
               },
             },
-            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: false } },
             { $project: { count: 1, views: 1, "category.name": 1, "category.slug": 1 } },
           ]),
         ])
@@ -413,7 +467,7 @@ export default async function DashboardPage() {
                     <div className="min-w-0">
                       <div className="font-semibold text-gray-900 truncate">{story.title}</div>
                       <div className="text-xs text-gray-500 truncate">
-                        {(story.categoryId as any)?.name || "Uncategorized"} · {formatDate(story.publishDate)}
+                        {getStoryCategoryLabel(story)} · {formatDate(story.publishDate)}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 text-sm font-semibold text-gray-700">
@@ -499,7 +553,7 @@ export default async function DashboardPage() {
                       <div>
                         <div className="font-semibold text-gray-900 line-clamp-2">{story.title}</div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {(story.categoryId as any)?.name || "Uncategorized"}
+                          {getStoryCategoryLabel(story)}
                         </div>
                       </div>
                     ) : (
@@ -535,7 +589,7 @@ export default async function DashboardPage() {
                     <div className="min-w-0">
                       <div className="font-semibold text-gray-900 truncate">{story.title}</div>
                       <div className="text-xs text-gray-500">
-                        Updated {formatDate(story.updatedAt)} · {(story.categoryId as any)?.name || "Uncategorized"}
+                        Updated {formatDate(story.updatedAt)} · {getStoryCategoryLabel(story)}
                       </div>
                     </div>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full border ${statusStyles[story.status] || statusStyles.draft}`}>
