@@ -202,6 +202,7 @@ function SocialIcon({ platform }: { platform: string }) {
 
 export default function Header({ categories, socialLinks }: HeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMobileAllCategoriesOpen, setIsMobileAllCategoriesOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [bengaliDate, setBengaliDate] = useState("");
   const [openMobileSubmenus, setOpenMobileSubmenus] = useState<
@@ -395,11 +396,11 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               <button className="flex items-center gap-1 text-gray-800 hover:text-primary transition-colors py-0.5">
                 <Share2 className="w-4 h-4 text-primary flex-shrink-0" />
                 <span>সোশ্যাল মিডিয়া</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:rotate-180 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:rotate-180 transition-transform duration-300" />
               </button>
 
               {/* Dropdown Menu */}
-              <div className="absolute right-0 top-full pt-1.5 hidden group-hover:block z-50 w-48 shadow-xl animate-fadeIn">
+              <div className="absolute right-0 top-full pt-1.5 z-50 w-48 shadow-xl opacity-0 invisible -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
                 <div className="bg-white rounded-xl border border-gray-200 py-1.5 shadow-lg space-y-0.5">
                   {socialEntries.length === 0 ? (
                     <div className="px-3 py-2 text-xs text-gray-400 font-normal">
@@ -412,7 +413,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-primary/10 hover:text-primary transition capitalize"
+                        className="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 capitalize"
                       >
                         <SocialIcon platform={platform} />
                         <span className="truncate">{platform}</span>
@@ -425,16 +426,28 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button with smooth icon transition */}
         <button
-          className="md:hidden p-2"
+          className="md:hidden p-2 text-gray-800 hover:text-primary transition-colors relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 active:scale-95"
           onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label="Toggle menu"
         >
-          {isMobileOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
+          <div className="relative w-6 h-6">
+            <Menu
+              className={`w-6 h-6 absolute inset-0 transition-all duration-300 ${
+                isMobileOpen
+                  ? "opacity-0 rotate-90 scale-75 pointer-events-none"
+                  : "opacity-100 rotate-0 scale-100"
+              }`}
+            />
+            <X
+              className={`w-6 h-6 absolute inset-0 transition-all duration-300 ${
+                isMobileOpen
+                  ? "opacity-100 rotate-0 scale-100"
+                  : "opacity-0 -rotate-90 scale-75 pointer-events-none"
+              }`}
+            />
+          </div>
         </button>
       </div>
 
@@ -492,16 +505,16 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                     className="px-4 py-2 font-semibold text-gray-700 hover:text-primary transition-all duration-200 inline-flex items-center"
                   >
                     <span>{cat.name}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary group-hover:rotate-180 transition-all duration-200 flex-shrink-0" />
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary group-hover:rotate-180 transition-all duration-300 flex-shrink-0" />
                   </Link>
 
                   {/* Dropdown Menu */}
-                  <div className="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50 min-w-[240px] shadow-2xl animate-fadeIn">
+                  <div className="absolute left-0 top-full pt-2 z-50 min-w-[240px] shadow-2xl opacity-0 invisible -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:pointer-events-auto transition-all duration-200 ease-out">
                     <div className="bg-white rounded-2xl border border-gray-200 py-2 shadow-xl space-y-0.5 overflow-hidden">
                       {/* Parent category link at top */}
                       <Link
                         href={`/category/${cat.slug}`}
-                        className="flex items-center px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/75 transition"
+                        className="flex items-center px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/75 transition duration-150"
                       >
                         <span className="inline-flex items-center gap-2">
                           <span>📌</span>
@@ -513,10 +526,10 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                           <Link
                             key={subCat._id}
                             href={`/category/${subCat.slug}`}
-                            className="group/sub flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-primary/10 hover:text-primary transition"
+                            className="group/sub flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-700 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors duration-150"
                           >
                             <span className="flex items-center gap-2">
-                              <span className="text-gray-300 group-hover/sub:text-primary transition-colors">
+                              <span className="text-gray-300 group-hover/sub:text-primary transition-colors duration-150">
                                 ▸
                               </span>
                               <span>{subCat.name}</span>
@@ -538,11 +551,11 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
               >
                 <span className="text-sm">☰</span>
                 <span>সব ক্যাটাগরি</span>
-                <ChevronDown className="w-4 h-4 text-primary group-hover:text-white group-hover:rotate-180 transition-all duration-200 flex-shrink-0" />
+                <ChevronDown className="w-4 h-4 text-primary group-hover:text-white group-hover:rotate-180 transition-all duration-300 flex-shrink-0" />
               </button>
 
               {/* Mega Dropdown Panel */}
-              <div className="absolute right-0 top-full pt-1.5 hidden group-hover:block group-focus-within:block z-50 animate-fadeIn">
+              <div className="absolute right-0 top-full pt-1.5 z-50 opacity-0 invisible -translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:pointer-events-auto transition-all duration-200 ease-out">
                 <div className="bg-white rounded-lg border border-gray-200 shadow-lg min-w-[700px] max-w-[900px] max-h-[70vh] overflow-y-auto p-3">
                   <div className="grid grid-cols-5 gap-x-8 gap-y-4">
                     {categoriesWithSubs.map((rootCat) => {
@@ -552,7 +565,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                         <div key={rootCat._id}>
                           <Link
                             href={`/category/${rootCat.slug}`}
-                            className="block text-sm font-bold mb-1 hover:text-primary"
+                            className="block text-sm font-bold mb-1 hover:text-primary transition-colors"
                           >
                             {rootCat.name}
                           </Link>
@@ -562,7 +575,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                               <li key={subCat._id}>
                                 <Link
                                   href={`/category/${subCat.slug}`}
-                                  className="text-xs text-gray-600 hover:text-primary"
+                                  className="text-xs text-gray-600 hover:text-primary transition-colors"
                                 >
                                   • {subCat.name}
                                 </Link>
@@ -582,7 +595,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                         <Link
                           key={cat._id}
                           href={`/category/${cat.slug}`}
-                          className="rounded-full bg-gray-100 px-3 py-1 text-sm hover:bg-primary hover:text-white transition"
+                          className="rounded-full bg-gray-100 px-3 py-1 text-sm hover:bg-primary hover:text-white transition duration-150"
                         >
                           {cat.name}
                         </Link>
@@ -598,7 +611,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
                     <Link
                       href="/search"
-                      className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90 transition"
+                      className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90 transition duration-150"
                     >
                       🔍 সব কনটেন্ট
                     </Link>
@@ -610,27 +623,43 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileOpen && (
-        <div className="md:hidden border-t bg-white px-4 pb-4">
-          <div className="flex flex-col gap-1 pt-2">
-            <Link
-              href="/"
-              onClick={() => setIsMobileOpen(false)}
-              className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
-            >
-              হোম
-            </Link>
+      {/* Mobile Menu Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 md:hidden z-40 ${
+          isMobileOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsMobileOpen(false)}
+      />
 
-            <Link
-              href="/latest-news"
-              onClick={() => setIsMobileOpen(false)}
-              className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
-            >
-              সর্বশেষ
-            </Link>
+      {/* Mobile Menu Drawer */}
+      <div
+        className={`md:hidden absolute top-full left-0 right-0 w-full bg-white border-b border-gray-200 shadow-2xl transition-all duration-300 ease-in-out z-50 overflow-y-auto ${
+          isMobileOpen
+            ? "max-h-[calc(100vh-80px)] opacity-100 translate-y-0 py-3 px-4 pointer-events-auto visible"
+            : "max-h-0 opacity-0 -translate-y-3 py-0 px-4 pointer-events-none invisible border-transparent"
+        }`}
+      >
+        <div className="flex flex-col gap-1 pt-1">
+          <Link
+            href="/"
+            onClick={() => setIsMobileOpen(false)}
+            className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors duration-150 rounded-md"
+          >
+            হোম
+          </Link>
 
-            {navCategories.map((cat) => {
+          <Link
+            href="/latest-news"
+            onClick={() => setIsMobileOpen(false)}
+            className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors duration-150 rounded-md"
+          >
+            সর্বশেষ
+          </Link>
+
+          {!isMobileAllCategoriesOpen &&
+            navCategories.map((cat) => {
               const catIdStr = getCatId(cat._id) || cat.slug;
               const subCats = getSubcategories(catIdStr);
               const hasSub = subCats.length > 0;
@@ -642,7 +671,7 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
                     key={cat._id}
                     href={`/category/${cat.slug}`}
                     onClick={() => setIsMobileOpen(false)}
-                    className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md"
+                    className="px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors duration-150 rounded-md"
                   >
                     {cat.name}
                   </Link>
@@ -651,55 +680,182 @@ export default function Header({ categories, socialLinks }: HeaderProps) {
 
               return (
                 <div key={cat._id} className="flex flex-col">
-                  <div className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md">
+                  <div className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-primary/5 rounded-md transition-colors duration-150">
                     <Link
                       href={`/category/${cat.slug}`}
                       onClick={() => setIsMobileOpen(false)}
-                      className="flex-1 text-gray-700 hover:text-primary"
+                      className="flex-1 text-gray-700 hover:text-primary transition-colors"
                     >
                       {cat.name}
                     </Link>
                     <button
                       type="button"
                       onClick={(e) => toggleMobileSubmenu(catIdStr, e)}
-                      className="p-1 text-gray-500 hover:text-primary focus:outline-none"
+                      className="p-1 text-gray-500 hover:text-primary focus:outline-none transition-colors"
                     >
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : ""
-                          }`}
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          isOpen ? "rotate-180 text-primary" : ""
+                        }`}
                       />
                     </button>
                   </div>
 
-                  {/* Subcategories list */}
-                  {isOpen && (
-                    <div className="ml-4 pl-3 border-l-2 border-primary/20 flex flex-col gap-1 py-1">
-                      {subCats.map((subCat) => (
-                        <Link
-                          key={subCat._id}
-                          href={`/category/${subCat.slug}`}
-                          onClick={() => setIsMobileOpen(false)}
-                          className="px-3 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-primary/5 rounded-md transition"
-                        >
-                          {subCat.name}
-                        </Link>
-                      ))}
+                  {/* Subcategories list with smooth grid animation */}
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isOpen
+                        ? "grid-rows-[1fr] opacity-100 mt-1"
+                        : "grid-rows-[0fr] opacity-0 mt-0"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="ml-4 pl-3 border-l-2 border-primary/20 flex flex-col gap-1 py-1">
+                        {subCats.map((subCat) => (
+                          <Link
+                            key={subCat._id}
+                            href={`/category/${subCat.slug}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className="px-3 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-primary/5 rounded-md transition duration-150"
+                          >
+                            {subCat.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
 
-            <Link
-              href="/search"
-              onClick={() => setIsMobileOpen(false)}
-              className="px-3 py-2.5 text-sm font-semibold text-gray-500 hover:bg-primary/5 rounded-md"
+          {/* ============ ALL CATEGORIES ACCORDION IN MOBILE MENU ============ */}
+          <div className="flex flex-col mt-1 border-t border-gray-100 pt-2">
+            <button
+              type="button"
+              onClick={() =>
+                setIsMobileAllCategoriesOpen(!isMobileAllCategoriesOpen)
+              }
+              className="flex items-center justify-between px-3 py-2.5 text-sm font-extrabold text-primary bg-primary/5 border border-primary/20 rounded-md transition-all duration-200 active:scale-[0.99]"
             >
-              🔍 Search
-            </Link>
+              <span className="flex items-center gap-2">
+                <span>☰</span>
+                <span>সব ক্যাটাগরি</span>
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  isMobileAllCategoriesOpen ? "rotate-180 text-primary" : ""
+                }`}
+              />
+            </button>
+
+            {/* Smooth Grid Accordion for All Categories */}
+            <div
+              className={`grid transition-all duration-300 ease-in-out ${
+                isMobileAllCategoriesOpen
+                  ? "grid-rows-[1fr] opacity-100 mt-2"
+                  : "grid-rows-[0fr] opacity-0 mt-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-3">
+                  {categoriesWithSubs.length > 0 && (
+                    <div className="space-y-2">
+                      {categoriesWithSubs.map((rootCat) => {
+                        const subCats = getSubcategories(rootCat._id);
+                        const rootIdStr = `all_cat_${getCatId(rootCat._id) || rootCat.slug}`;
+                        const isRootOpen = !!openMobileSubmenus[rootIdStr];
+
+                        return (
+                          <div
+                            key={rootCat._id}
+                            className="bg-white p-2.5 rounded-md border border-gray-200/80 shadow-xs transition-shadow duration-150 hover:shadow-sm"
+                          >
+                            <div className="flex items-center justify-between">
+                              <Link
+                                href={`/category/${rootCat.slug}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className="font-bold text-xs text-gray-800 hover:text-primary transition-colors flex-1"
+                              >
+                                {rootCat.name}
+                              </Link>
+                              {subCats.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => toggleMobileSubmenu(rootIdStr, e)}
+                                  className="p-1 text-gray-400 hover:text-primary transition-colors"
+                                >
+                                  <ChevronDown
+                                    className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                                      isRootOpen ? "rotate-180 text-primary" : ""
+                                    }`}
+                                  />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Nested Subcategories Accordion with smooth grid */}
+                            <div
+                              className={`grid transition-all duration-200 ease-in-out ${
+                                isRootOpen
+                                  ? "grid-rows-[1fr] opacity-100 mt-2"
+                                  : "grid-rows-[0fr] opacity-0 mt-0"
+                              }`}
+                            >
+                              <div className="overflow-hidden">
+                                <div className="ml-2 pl-2 border-l-2 border-primary/20 flex flex-wrap gap-1.5 pt-1">
+                                  {subCats.map((subCat) => (
+                                    <Link
+                                      key={subCat._id}
+                                      href={`/category/${subCat.slug}`}
+                                      onClick={() => setIsMobileOpen(false)}
+                                      className="text-xs text-gray-600 hover:text-primary bg-gray-100 hover:bg-primary/10 px-2 py-1 rounded transition duration-150"
+                                    >
+                                      • {subCat.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {singleCategories.length > 0 && (
+                    <div className="border-t border-gray-200 pt-2.5">
+                      <h4 className="text-xs font-bold text-gray-700 mb-2">
+                        অন্যান্য বিভাগ
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {singleCategories.map((cat) => (
+                          <Link
+                            key={cat._id}
+                            href={`/category/${cat.slug}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className="rounded-full bg-white border border-gray-200 px-2.5 py-1 text-xs text-gray-700 hover:bg-primary hover:text-white transition duration-150 shadow-2xs"
+                          >
+                            {cat.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
+          <Link
+            href="/search"
+            onClick={() => setIsMobileOpen(false)}
+            className="mt-1 px-3 py-2.5 text-sm font-semibold text-gray-600 hover:bg-primary/5 hover:text-primary rounded-md flex items-center gap-2 border-t border-gray-100 transition-colors duration-150"
+          >
+            <Search className="w-4 h-4 text-primary" />
+            <span>অনুসন্ধান</span>
+          </Link>
         </div>
-      )}
+      </div>
     </header>
   );
 }
