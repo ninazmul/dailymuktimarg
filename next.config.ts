@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["mongoose", "nodemailer", "uploadthing"],
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "react-icons",
+      "framer-motion",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-label",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-slot",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
