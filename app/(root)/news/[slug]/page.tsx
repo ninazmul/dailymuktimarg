@@ -676,6 +676,54 @@ export default async function ArticlePage({ params }: PageProps) {
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
 
+          {/* Reporter Credit */}
+          {article.reporterId?.name && (
+            <p className="text-sm text-gray-500 mt-4">
+              প্রতিবেদন:{" "}
+              <span className="font-semibold text-gray-700">
+                {article.reporterId.name}
+              </span>
+            </p>
+          )}
+
+          {/* Tags (Displayed immediately after news description) */}
+          {(() => {
+            const tagsList =
+              Array.isArray(article.tags) && article.tags.length > 0
+                ? article.tags
+                : Array.isArray(article.keywords) && article.keywords.length > 0
+                  ? article.keywords.map((kw: string) => ({ name: kw, slug: "" }))
+                  : [];
+
+            if (tagsList.length === 0) return null;
+
+            return (
+              <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-gray-100">
+                <span className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 mr-1">
+                  <Tag className="w-3.5 h-3.5 text-primary" />
+                  ট্যাগ:
+                </span>
+                {tagsList.map((tag: any, idx: number) => {
+                  const tagSlug = typeof tag === "string" ? tag : tag?.slug;
+                  const tagName = typeof tag === "string" ? tag : tag?.name;
+                  if (!tagName) return null;
+                  const linkHref = tagSlug
+                    ? `/search?tag=${encodeURIComponent(tagSlug)}`
+                    : `/search?q=${encodeURIComponent(tagName)}`;
+                  return (
+                    <Link
+                      key={tag._id || tagSlug || `${tagName}-${idx}`}
+                      href={linkHref}
+                      className="inline-flex items-center text-xs bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary px-3 py-1 rounded-full transition font-medium border border-gray-200/80 shadow-2xs"
+                    >
+                      #{tagName}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
           {/* Inline Ads */}
           {inlineAds.length > 0 && (
             <div className="my-8 max-w-3xl mx-auto space-y-4">
@@ -724,30 +772,6 @@ export default async function ArticlePage({ params }: PageProps) {
                 })}
               </div>
             </div>
-          )}
-
-          {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-8 pt-6 border-t">
-              <Tag className="w-4 h-4 text-gray-400" />
-              {article.tags.map((tag: any) => (
-                <Link
-                  key={tag._id}
-                  href={`/search?tag=${tag.slug}`}
-                  className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-primary/10 hover:text-primary transition"
-                >
-                  #{tag.name}
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Reporter Credit */}
-          {article.reporterId?.name && (
-            <p className="text-sm text-gray-500 mt-4">
-              প্রতিবেদন:{" "}
-              <span className="font-semibold">{article.reporterId.name}</span>
-            </p>
           )}
         </div>
 
