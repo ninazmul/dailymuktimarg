@@ -156,3 +156,20 @@ h6 {
 .cl-formButtonPrimary:active {
   background-color: #705cf7;
 }
+
+/* ========================================== ARTICLE & TIPTAP RICH TEXT */
+.prose mark,
+.tiptap-editor mark {
+  padding: 0.15em 0.35em;
+  margin: 0 0.08em;
+  border-radius: 0.25rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Fallback default background if mark has no inline background-color */
+.prose mark:not([style*="background-color"]),
+.tiptap-editor mark:not([style*="background-color"]) {
+  background-color: #fef08a;
+  color: inherit;
+}
