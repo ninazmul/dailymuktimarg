@@ -3,7 +3,7 @@ import News from "@/lib/database/models/news.model";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, Tag, User, Play } from "lucide-react";
+import { Clock, Eye, User, Play } from "lucide-react";
 import type { Metadata } from "next";
 import { getAds } from "@/lib/actions/ad.actions";
 import Ad from "@/components/shared/Ad";
@@ -699,10 +699,6 @@ export default async function ArticlePage({ params }: PageProps) {
 
             return (
               <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-gray-100">
-                <span className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 mr-1">
-                  <Tag className="w-3.5 h-3.5 text-primary" />
-                  ট্যাগ:
-                </span>
                 {tagsList.map((tag: any, idx: number) => {
                   const tagSlug = typeof tag === "string" ? tag : tag?.slug;
                   const tagName = typeof tag === "string" ? tag : tag?.name;
@@ -716,7 +712,7 @@ export default async function ArticlePage({ params }: PageProps) {
                       href={linkHref}
                       className="inline-flex items-center text-xs bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary px-3 py-1 rounded-full transition font-medium border border-gray-200/80 shadow-2xs"
                     >
-                      #{tagName}
+                      {tagName}
                     </Link>
                   );
                 })}
